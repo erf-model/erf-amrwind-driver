@@ -1,0 +1,42 @@
+
+# IDE files
+.idea
+.vscode
+
+# macOS files
+.DS_Store
+
+# Log files
+datlog
+log.*
+
+# Ignore everything in Build except the cmake script
+/Build/*
+!/Build/cmake.sh
+!/Build/cmake_cuda.sh
+!/Build/cmake_hip_crusher.sh
+!/Build/cmake_hip.sh
+!/Build/cmake_sycl.sh
+!/Build/cmake_with_moisture.sh
+!/Build/cmake_with_netcdf.sh
+!/Build/cmake_with_poisson.sh
+!/Build/cmake_with_warm_no_precip.sh
+
+# Temporary files
+*/Testing/Temporary
+.*.swp
+
+/Exec/WORK/*
+ic.txt
+plt*
+chk*
+tmp_build_dir
+.ccls-cache
+ERF*.ex
+AMReX_buildInfo.cpp
+cmake-build*
+cmake_build*
+cmake*ser*
+cmake*par*
+.idea
+*.ipynb

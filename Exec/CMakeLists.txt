@@ -1,0 +1,8 @@
+set(erf_lib_name erf_srclib)
+add_library(${erf_lib_name} OBJECT)
+include(${CMAKE_SOURCE_DIR}/CMake/BuildExe.cmake)
+build_erf_lib(${erf_lib_name})
+if (ERF_ENABLE_MULTIBLOCK)
+  #add_subdirectory(MultiBlock)
+  add_subdirectory(MultiBlockABL)
+endif()

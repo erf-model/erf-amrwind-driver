@@ -21,6 +21,7 @@ log.*
 !/Build/cmake_with_netcdf.sh
 !/Build/cmake_with_poisson.sh
 !/Build/cmake_with_warm_no_precip.sh
+!/Build/cmake_mpi.sh
 
 # Temporary files
 */Testing/Temporary

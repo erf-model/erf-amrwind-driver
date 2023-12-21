@@ -27,6 +27,10 @@ function(build_erf_lib erf_lib_name)
     target_include_directories(${erf_lib_name} PUBLIC ${SRC_DIR}/MultiBlock)
   endif()
 
+  # Generate AMR-Wind version header
+  configure_file("${AMRWIND_HOME}/cmake/AMRWindVersion.H.in"
+  "${CMAKE_BINARY_DIR}/amr-wind/AMRWindVersion.H" @ONLY)
+
   target_sources(${erf_lib_name} PRIVATE
                 ${AMRW_SRC_DIR}/incflo_advance.cpp
                 ${AMRW_SRC_DIR}/incflo.cpp

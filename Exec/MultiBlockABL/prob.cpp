@@ -81,8 +81,11 @@ Problem::init_custom_pert(
     amrex::Array4<amrex::Real const> const& /*mf_m*/,
     amrex::Array4<amrex::Real const> const& /*mf_u*/,
     amrex::Array4<amrex::Real const> const& /*mf_v*/,
-    const SolverChoice& /*sc*/)
+    const SolverChoice& sc)
 {
+
+  const bool use_moisture = (sc.moisture_type != MoistureType::None);
+
   ParallelForRNG(bx, [=, parms=parms] AMREX_GPU_DEVICE(int i, int j, int k, const amrex::RandomEngine& engine) noexcept {
     // Geometry
     const Real* prob_lo = geomdata.ProbLo();
@@ -121,13 +124,10 @@ Problem::init_custom_pert(
     // Set an initial value for QKE
     state(i, j, k, RhoQKE_comp) = parms.QKE_0;
 
-#if defined(ERF_USE_MOISTURE)
-    state(i, j, k, RhoQt_comp) = 0.0;
-    state(i, j, k, RhoQp_comp) = 0.0;
-#elif defined(ERF_USE_WARM_NO_PRECIP)
-    state(i, j, k, RhoQv_comp) = 0.0;
-    state(i, j, k, RhoQc_comp) = 0.0;
-#endif
+    if (use_moisture) {
+        state(i, j, k, RhoQ1_comp) = 0.0;
+        state(i, j, k, RhoQ2_comp) = 0.0;
+    }
   });
 
   // Set the x-velocity

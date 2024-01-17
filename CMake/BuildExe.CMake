@@ -22,7 +22,8 @@ function(build_erf_lib erf_lib_name)
   if(ERF_ENABLE_MULTIBLOCK)
     target_sources(${erf_lib_name} PRIVATE
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
-                   ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp)
+                   ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
+                   ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
     target_include_directories(${erf_lib_name} PUBLIC ${SRC_DIR}/MultiBlock)
   endif()
@@ -103,7 +104,6 @@ function(build_erf_lib erf_lib_name)
                 #${AMRW_SRC_DIR}/utilities/ascent/ascent.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABL.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLStats.cpp
-                ${AMRW_SRC_DIR}/wind_energy/ABLFieldInit.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLFieldInitFile.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLMesoscaleForcing.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLWallFunction.cpp

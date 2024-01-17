@@ -836,16 +836,22 @@ void ABLBoundaryPlane::read_erf()
             (field.bc_type()[ori] != BC::mass_inflow)) {
           //continue;
         }
-        if (field.bc_type()[ori] == BC::mass_inflow and time >= 0.0 and field.name() == "temperature") {
-          amrex::Print() << "COPY ERF TO AMRWIND ... " << std::endl;
-          mbc()->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
-          mbc()->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
-          /*
-          if ( field.name() == "temperature") {
-            mbc()->CopyToBoundaryRegister(bndry1, ori);
-          } else if ( field.name() == "velocity") {
-            // mbc()->CopyToBoundaryRegister(bndry1, bndry2, ori);
-            } */
+        if (field.bc_type()[ori] == BC::mass_inflow and time >= 0.0) {
+          if (field.name() == "temperature") {
+            amrex::Print() << "COPY ERF TO AMRWIND ... " << std::endl;
+            mbc()->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
+            mbc()->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
+            /*
+            if ( field.name() == "temperature") {
+                mbc()->CopyToBoundaryRegister(bndry1, ori);
+            } else if ( field.name() == "velocity") {
+                // mbc()->CopyToBoundaryRegister(bndry1, bndry2, ori);
+                } */
+          } else if (field.name() == "velocity") {
+amrex::Print() << "BRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR";
+            mbc()->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
+            mbc()->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
+          }
         } else {
           if (field.name() == "temperature") {
             bndry1[ori].setVal(300.0);

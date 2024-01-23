@@ -125,12 +125,15 @@ Problem::init_custom_pert(
   // Set the x-velocity
   ParallelForRNG(xbx, [=, parms=parms] AMREX_GPU_DEVICE(int i, int j, int k, const amrex::RandomEngine& engine) noexcept {
     const Real* prob_lo = geomdata.ProbLo();
+    const Real* prob_hi = geomdata.ProbHi();
     const Real* dx = geomdata.CellSize();
     const Real y = prob_lo[1] + (j + 0.5) * dx[1];
     const Real z = prob_lo[2] + (k + 0.5) * dx[2];
 
-    // Set the x-velocity
-    x_vel(i, j, k) = parms.U_0;
+    // Set the x-velocity as a constant gradient in z
+    //x_vel(i, j, k) = parms.U_0;
+    x_vel(i, j, k) = parms.U_0 * z / prob_hi[2];
+
     if ((z <= parms.pert_ref_height) && (parms.U_0_Pert_Mag != 0.0))
     {
         Real rand_double = amrex::Random(engine); // Between 0.0 and 1.0

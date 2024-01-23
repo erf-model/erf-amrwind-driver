@@ -109,8 +109,8 @@ MultiBlockContainer::SetBoxLists()
       amrex::Box ebx({ese.x, ese.y, ese.z}, {ebe.x, ebe.y, ebe.z});
       eboxvec_afrome.push_back(ebx);
 
-      // amrex::Print() << "Ori: " << ori << " A-W BNDRY in A-W Coords: " << abx << std::endl;
-      // amrex::Print() << "Ori: " << ori << " A-W BNDRY in ERF Coords: " << ebx << std::endl;
+      amrex::Print() << "Ori: " << ori << " A-W BNDRY in A-W Coords: " << abx << std::endl;
+      amrex::Print() << "Ori: " << ori << " A-W BNDRY in ERF Coords: " << ebx << std::endl;
 
       // Do some error checking to ensure that the AMR-Wind is fully within the ERF domain (not touching any boundaries)
       // Note: in theory this error check could trip for a non-bopundary plane mass_inflow in AMR-Wind

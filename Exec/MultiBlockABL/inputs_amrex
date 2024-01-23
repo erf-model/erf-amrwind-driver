@@ -5,7 +5,7 @@ FILE = input_erf1
 FILE = input_amrwind
 
 # MAX STEPS FOR ALL BLOCKS
-max_step  = 1000
+max_step  = 100
 stop_time = 300
 
 mbc.do_two_way_coupling = true

@@ -848,7 +848,6 @@ void ABLBoundaryPlane::read_erf()
                 // mbc()->CopyToBoundaryRegister(bndry1, bndry2, ori);
                 } */
           } else if (field.name() == "velocity") {
-amrex::Print() << "BRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR";
             mbc()->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
             mbc()->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
           }

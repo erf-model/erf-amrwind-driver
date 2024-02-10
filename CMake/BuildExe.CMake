@@ -318,6 +318,7 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/TimeIntegration/ERF_TimeStep.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_dycore.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_microphysics.cpp
+       ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_lsm.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_radiation.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_make_buoyancy.cpp
        #${ERF_SRC_DIR}/TimeIntegration/ERF_make_condensation_source.cpp
@@ -347,6 +348,8 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/Microphysics/FastEddy/FastEddy.cpp
        ${ERF_SRC_DIR}/Microphysics/FastEddy/Diagnose_FE.cpp
        ${ERF_SRC_DIR}/Microphysics/FastEddy/Update_FE.cpp
+       ${ERF_SRC_DIR}/LandSurfaceModel/SLM/SLM.cpp
+       ${ERF_SRC_DIR}/LandSurfaceModel/MM5/MM5.cpp
   )
 
   if(NOT "${erf_exe_name}" STREQUAL "erf_unit_tests")
@@ -392,6 +395,10 @@ function(build_erf_lib erf_lib_name)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/SAM)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Kessler)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/FastEddy)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/Null)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/SLM)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/MM5)
 
   if(ERF_ENABLE_RRTMGP)
      target_link_libraries(${erf_lib_name} PUBLIC yakl)

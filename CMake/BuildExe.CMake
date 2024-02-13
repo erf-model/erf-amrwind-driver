@@ -22,6 +22,7 @@ function(build_erf_lib erf_lib_name)
   target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
   if(ERF_ENABLE_MULTIBLOCK)
     target_sources(${erf_lib_name} PRIVATE
+                   ${SRC_DIR}/incflo_Evolve_MB.cpp
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
                    ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
                    ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
@@ -283,8 +284,6 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_yvel.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_zvel.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_bndryreg.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_wrfbdy.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_metgrid.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatch.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatcher.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_PhysBCFunct.cpp

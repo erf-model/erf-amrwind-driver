@@ -22,6 +22,7 @@ function(build_erf_lib erf_lib_name)
   target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
   if(ERF_ENABLE_MULTIBLOCK)
     target_sources(${erf_lib_name} PRIVATE
+                   ${SRC_DIR}/incflo_Evolve_MB.cpp
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
                    ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
                    ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
@@ -51,6 +52,7 @@ function(build_erf_lib erf_lib_name)
                 ${AMRW_SRC_DIR}/core/MeshMap.cpp
                 ${AMRW_SRC_DIR}/boundary_conditions/BCInterface.cpp
                 ${AMRW_SRC_DIR}/boundary_conditions/FixedGradientBC.cpp
+                ${AMRW_SRC_DIR}/boundary_conditions/scalar_bcs.cpp
                 ${AMRW_SRC_DIR}/boundary_conditions/wall_models/WallFunction.cpp
                 ${AMRW_SRC_DIR}/convection/incflo_godunov_weno.cpp
                 ${AMRW_SRC_DIR}/convection/incflo_godunov_ppm.cpp
@@ -74,6 +76,7 @@ function(build_erf_lib erf_lib_name)
                 ${AMRW_SRC_DIR}/utilities/PostProcessing.cpp
                 ${AMRW_SRC_DIR}/utilities/DerivedQuantity.cpp
                 ${AMRW_SRC_DIR}/utilities/DerivedQtyDefs.cpp
+                ${AMRW_SRC_DIR}/utilities/MultiLevelVector.cpp
                 ${AMRW_SRC_DIR}/utilities/tagging/RefinementCriteria.cpp
                 ${AMRW_SRC_DIR}/utilities/tagging/CartBoxRefinement.cpp
                 ${AMRW_SRC_DIR}/utilities/tagging/FieldRefinement.cpp
@@ -107,12 +110,14 @@ function(build_erf_lib erf_lib_name)
                 ${AMRW_SRC_DIR}/wind_energy/ABLStats.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLFieldInitFile.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLMesoscaleForcing.cpp
+                ${AMRW_SRC_DIR}/wind_energy/ABLMesoscaleInput.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLWallFunction.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLFillInflow.cpp
                 #${AMRW_SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
                 ${AMRW_SRC_DIR}/wind_energy/MOData.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLFillMPL.cpp
                 ${AMRW_SRC_DIR}/wind_energy/ABLModulatedPowerLaw.cpp
+                ${AMRW_SRC_DIR}/wind_energy/ABLAnelastic.cpp
                 ${AMRW_SRC_DIR}/wind_energy/actuator/actuator_utils.cpp
                 ${AMRW_SRC_DIR}/wind_energy/actuator/Actuator.cpp
                 ${AMRW_SRC_DIR}/wind_energy/actuator/ActuatorContainer.cpp
@@ -187,6 +192,9 @@ function(build_erf_lib erf_lib_name)
                 ${AMRW_SRC_DIR}/physics/udfs/LinearProfile.cpp
                 ${AMRW_SRC_DIR}/physics/udfs/PowerLawProfile.cpp
                 ${AMRW_SRC_DIR}/physics/udfs/BurggrafLid.cpp
+                ${AMRW_SRC_DIR}/physics/udfs/Rankine.cpp
+                ${AMRW_SRC_DIR}/physics/udfs/CustomVelocity.cpp
+                ${AMRW_SRC_DIR}/physics/udfs/CustomScalar.cpp
                 #${AMRW_SRC_DIR}/physics/mms/MMS.cpp
                 #${AMRW_SRC_DIR}/physics/mms/MMSForcing.cpp
                 ${AMRW_SRC_DIR}/overset/TiogaInterface.cpp
@@ -283,8 +291,6 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_yvel.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_zvel.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_bndryreg.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_wrfbdy.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_metgrid.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatch.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatcher.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_PhysBCFunct.cpp

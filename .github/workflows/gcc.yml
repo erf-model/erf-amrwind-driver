@@ -1,0 +1,57 @@
+name: Linux GCC
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-linux-gcc
+  cancel-in-progress: true
+
+jobs:
+  library:
+    name: GNU@9.3 C++17 Release
+    runs-on: ubuntu-20.04
+    # env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual"}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Install Dependencies
+      run: Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
+
+    - name: Configure Project and Generate Build System
+      run: |
+        cmake \
+          -DCMAKE_INSTALL_PREFIX:PATH=./install \
+          -DCMAKE_CXX_COMPILER:STRING=mpicxx \
+          -DCMAKE_C_COMPILER:STRING=mpicc \
+          -DCMAKE_Fortran_COMPILER:STRING=mpifort \
+          -DCMAKE_BUILD_TYPE:STRING=Release \
+          -DAMRWIND_HOME:STRING=$HOME/amr-wind \
+          -DERF_HOME:STRING=$HOME/ERF \
+          -DERF_DIM:STRING=3 \
+          -DERF_ENABLE_MPI:BOOL=ON \
+          -DERF_ENABLE_TESTS:BOOL=OFF \
+          -DERF_ENABLE_FCOMPARE:BOOL=ON \
+          -DERF_ENABLE_DOCUMENTATION:BOOL=OFF \
+          -DERF_ENABLE_MULTIBLOCK:BOOL=ON \
+          ..
+        cmake \
+          -B${{runner.workspace}}/ERF/build \
+          -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/ERF/install \
+          -DCMAKE_BUILD_TYPE:STRING=Debug \
+          -DERF_DIM:STRING=3 \
+          -DERF_ENABLE_MPI:BOOL=ON \
+          -DERF_ENABLE_TESTS:BOOL=ON \
+          -DERF_ENABLE_ALL_WARNINGS:BOOL=ON \
+          -DERF_ENABLE_FCOMPARE:BOOL=ON \
+          ${{github.workspace}};
+
+    - name: Compile and Link
+      run: |
+        cmake --build ${{runner.workspace}}/ERF/build --parallel 2 --verbose
+
+    - name: CMake Tests # see file ERF/Tests/CTestList.cmake
+      run: |
+        ctest -L regression -VV
+      working-directory: ${{runner.workspace}}/ERF/build

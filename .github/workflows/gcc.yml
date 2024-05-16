@@ -56,4 +56,10 @@ jobs:
       run: |
         cd ${{runner.workspace}}/erf-amrwind-driver/build
         make -j 8
-      # cmake --build ${{runner.workspace}}/ERF/build --parallel 2 --verbose
+
+    - name: Run Couette flow problem
+      run: |
+        cd ${{runner.workspace}}/erf-amrwind-driver/build
+        cd Exec/CouetteFlow
+        cp ${{runner.workspace}}/erf-amrwind-driver/Exec/CouetteFlow/input* .
+        ./erf_mb_couette inputs_amrex input_erf1 input_amrwind

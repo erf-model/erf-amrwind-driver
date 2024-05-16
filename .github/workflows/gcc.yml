@@ -12,11 +12,14 @@ jobs:
     runs-on: ubuntu-20.04
     # env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual"}
     steps:
-    - uses: actions/checkout@v3
+    - name: checkout ERF
+      uses: actions/checkout@v3
       with:
         repository: git@github.com:mukul1992/ERF.git
         ref: preserve-amrw-coupling
         path: ERF
+    - name: checkout amr-wind
+      uses: actions/checkout@v3
       with:
         repository: git@github.com:mukul1992/amr-wind.git
         ref: new-erf-coupling

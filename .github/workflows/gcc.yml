@@ -17,12 +17,14 @@ jobs:
       with:
         repository: mukul1992/ERF.git
         ref: preserve-amrw-coupling
+        submodules: true
         path: ERF
     - name: checkout amr-wind
       uses: actions/checkout@v3
       with:
         repository: mukul1992/amr-wind.git
         ref: new-erf-coupling
+        submodules: true
         path: amr-wind
 
     - name: Install Dependencies

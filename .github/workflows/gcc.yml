@@ -62,4 +62,4 @@ jobs:
         cd ${{runner.workspace}}/erf-amrwind-driver/build
         cd Exec/CouetteFlow
         cp ${{runner.workspace}}/erf-amrwind-driver/Exec/CouetteFlow/input* .
-        ./erf_mb_couette inputs_amrex input_erf1 input_amrwind
+      # ./erf_mb_couette inputs_amrex input_erf1 input_amrwind

@@ -1,0 +1,65 @@
+name: Linux GCC
+
+on: [push, pull_request]
+
+#concurrency:
+#  group: ${{ github.ref }}-${{ github.head_ref }}-linux-gcc
+#  cancel-in-progress: true
+
+jobs:
+  library:
+    name: GNU@9.3 C++17 Release
+    runs-on: ubuntu-20.04
+    # env: {CXXFLAGS: "-fno-operator-names -Werror -Wall -Wextra -Wpedantic -Wnull-dereference -Wfloat-conversion -Wshadow -Woverloaded-virtual"}
+    steps:
+    - name: checkout driver
+      uses: actions/checkout@v3
+
+    - name: checkout ERF
+      uses: actions/checkout@v3
+      with:
+        repository: mukul1992/ERF.git
+        ref: preserve-amrw-coupling
+        submodules: true
+        path: ERF
+    - name: checkout amr-wind
+      uses: actions/checkout@v3
+      with:
+        repository: mukul1992/amr-wind.git
+        ref: new-erf-coupling
+        submodules: true
+        path: amr-wind
+
+    - name: Install Dependencies
+      run: ${{github.workspace}}/ERF/Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
+
+    - name: Configure Project and Generate Build System
+      run: |
+        cmake \
+          -B${{runner.workspace}}/erf-amrwind-driver/build \
+          -DCMAKE_INSTALL_PREFIX:PATH=${{runner.workspace}}/erf-amrwind-driver/install \
+          -DCMAKE_CXX_COMPILER:STRING=mpicxx \
+          -DCMAKE_C_COMPILER:STRING=mpicc \
+          -DCMAKE_Fortran_COMPILER:STRING=mpifort \
+          -DCMAKE_BUILD_TYPE:STRING=Release \
+          -DAMRWIND_HOME:STRING=${{github.workspace}}/amr-wind \
+          -DERF_HOME:STRING=${{github.workspace}}/ERF \
+          -DERF_DIM:STRING=3 \
+          -DERF_ENABLE_MPI:BOOL=ON \
+          -DERF_ENABLE_TESTS:BOOL=OFF \
+          -DERF_ENABLE_FCOMPARE:BOOL=ON \
+          -DERF_ENABLE_DOCUMENTATION:BOOL=OFF \
+          -DERF_ENABLE_MULTIBLOCK:BOOL=ON \
+          ${{github.workspace}};
+
+    - name: Compile and Link
+      run: |
+        cd ${{runner.workspace}}/erf-amrwind-driver/build
+        make -j 8
+
+    - name: Run Couette flow problem
+      run: |
+        cd ${{runner.workspace}}/erf-amrwind-driver/build
+        cd Exec/CouetteFlow
+        cp ${{runner.workspace}}/erf-amrwind-driver/Exec/CouetteFlow/input* .
+      # ./erf_mb_couette inputs_amrex input_erf1 input_amrwind

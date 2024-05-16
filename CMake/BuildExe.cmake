@@ -316,6 +316,7 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/IO/ERF_ReadBndryPlanes.cpp
        ${ERF_SRC_DIR}/IO/ERF_WriteBndryPlanes.cpp
        ${ERF_SRC_DIR}/IO/ERF_Write1DProfiles.cpp
+       ${ERF_SRC_DIR}/IO/ERF_Write1DProfiles_stag.cpp
        ${ERF_SRC_DIR}/IO/ERF_WriteScalarProfiles.cpp
        ${ERF_SRC_DIR}/IO/Plotfile.cpp
        ${ERF_SRC_DIR}/IO/writeJobInfo.cpp

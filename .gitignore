@@ -23,6 +23,8 @@ log.*
 !/Build/cmake_with_warm_no_precip.sh
 !/Build/cmake_mpi.sh
 
+*build
+
 # Temporary files
 */Testing/Temporary
 .*.swp

@@ -7,29 +7,9 @@ function(target_link_libraries_system target visibility)
   endforeach(lib)
 endfunction(target_link_libraries_system)
 
-function(build_erf_lib erf_lib_name)
+function(build_erf_lib_amrw erf_lib_name)
 
-  set(SRC_DIR ${CMAKE_SOURCE_DIR}/Source)
-  set(BIN_DIR ${CMAKE_BINARY_DIR}/Source/${erf_lib_name})
-  set(ERF_SRC_DIR  ${ERF_HOME}/Source)
-  set(AMRW_SRC_DIR  ${AMRWIND_HOME}/amr-wind)
-
-  include(${CMAKE_SOURCE_DIR}/CMake/SetERFCompileFlags.cmake)
-  set_erf_compile_flags(${erf_lib_name})
-
-  target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MOISTURE)
-
-  target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
-  if(ERF_ENABLE_MULTIBLOCK)
-    target_sources(${erf_lib_name} PRIVATE
-                   ${SRC_DIR}/incflo_Evolve_MB.cpp
-                   ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
-                   ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
-                   ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
-    target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
-    target_include_directories(${erf_lib_name} PUBLIC ${SRC_DIR}/MultiBlock)
-  endif()
-
+if (${DRIVER_USE_INTERNAL_AMRWIND})
   # Generate AMR-Wind version header
   configure_file("${AMRWIND_HOME}/cmake/AMRWindVersion.H.in"
   "${CMAKE_BINARY_DIR}/amr-wind/AMRWindVersion.H" @ONLY)
@@ -215,6 +195,17 @@ function(build_erf_lib erf_lib_name)
   target_include_directories(${erf_lib_name} SYSTEM PUBLIC
                             ${AMRW_SRC_DIR}/../
                             )
+else()
+find_package(AMR-Wind REQUIRED)
+message(STATUS "Found AMR-Wind = ${AMR_WIND_INCLUDE_DIR}")
+message(STATUS "Found AMR-Wind = ${AMR_WIND_LIBRARY_DIR}")
+target_link_libraries_system(${erf_lib_name} PUBLIC
+  AMR-Wind::amrwind_api
+  AMR-Wind::buildInfoamrwind_obj)
+endif()
+endfunction(build_erf_lib_amrw)
+
+function(build_erf_lib_erf erf_lib_name)
 
   if(ERF_ENABLE_WARM_NO_PRECIP)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_WARM_NO_PRECIP)
@@ -411,7 +402,9 @@ function(build_erf_lib erf_lib_name)
      target_link_libraries(${erf_lib_name} PUBLIC yakl)
      target_link_libraries(${erf_lib_name} PUBLIC rrtmgp)
   endif()
+endfunction(build_erf_lib_erf)
 
+function(build_erf_lib_amrex erf_lib_name)
   #Link to amrex library
   target_link_libraries_system(${erf_lib_name} PUBLIC amrex)
   target_link_libraries_system(${erf_lib_name} PUBLIC AMReX-Hydro::amrex_hydro_api)
@@ -430,13 +423,42 @@ function(build_erf_lib erf_lib_name)
     CUDA_RESOLVE_DEVICE_SYMBOLS ON)
   endif()
 
+endfunction(build_erf_lib_amrex)
+
+function(build_erf_lib_wrapper erf_lib_name)
+
+  set(SRC_DIR ${CMAKE_SOURCE_DIR}/Source)
+  set(BIN_DIR ${CMAKE_BINARY_DIR}/Source/${erf_lib_name})
+  set(ERF_SRC_DIR  ${ERF_HOME}/Source)
+  set(AMRW_SRC_DIR  ${AMRWIND_HOME}/amr-wind)
+
+  include(${CMAKE_SOURCE_DIR}/CMake/SetERFCompileFlags.cmake)
+  set_erf_compile_flags(${erf_lib_name})
+
+  target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MOISTURE)
+
+  target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
+  if(ERF_ENABLE_MULTIBLOCK)
+    target_sources(${erf_lib_name} PRIVATE
+                   ${SRC_DIR}/incflo_Evolve_MB.cpp
+                   ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
+                   ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
+                   ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
+    target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
+    target_include_directories(${erf_lib_name} PUBLIC ${SRC_DIR}/MultiBlock)
+  endif()
+
+  build_erf_lib_amrw(${erf_lib_name})
+  build_erf_lib_erf(${erf_lib_name})
+  build_erf_lib_amrex(${erf_lib_name})
+
   #Define what we want to be installed during a make install
   install(TARGETS ${erf_lib_name}
           RUNTIME DESTINATION bin
           ARCHIVE DESTINATION lib
           LIBRARY DESTINATION lib)
 
-endfunction(build_erf_lib)
+endfunction(build_erf_lib_wrapper)
 
 function(build_erf_exe erf_exe_name)
 

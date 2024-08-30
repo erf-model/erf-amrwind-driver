@@ -196,17 +196,24 @@ if (${DRIVER_USE_INTERNAL_AMRWIND})
                             ${AMRW_SRC_DIR}/../
                             )
 else()
+
+#set(AMR_WIND_USE_INTERNAL_AMREX OFF CACHE INTERNAL "" )
+#set(AMR_WIND_USE_INTERNAL_AMREX_HYDRO OFF CACHE INTERNAL "" )
+#add_subdirectory(${AMRWIND_HOME} amr-wind)
+#add_library(AMR-Wind::amrwind_api ALIAS amrwind_api)
+#add_library(AMR-Wind::buildInfoamrwind_obj ALIAS buildInfoamrwind_obj)
 find_package(AMR-Wind REQUIRED)
 message(STATUS "Found AMR-Wind = ${AMR_WIND_INCLUDE_DIR}")
 message(STATUS "Found AMR-Wind = ${AMR_WIND_LIBRARY_DIR}")
 target_link_libraries_system(${erf_lib_name} PUBLIC
-  AMR-Wind::amrwind_api
+  AMR-Wind::amrwind_api)
+  target_link_libraries_system(${erf_lib_name} PUBLIC
   AMR-Wind::buildInfoamrwind_obj)
 endif()
 endfunction(build_erf_lib_amrw)
 
 function(build_erf_lib_erf erf_lib_name)
-
+if (${DRIVER_USE_INTERNAL_ERF})
   if(ERF_ENABLE_WARM_NO_PRECIP)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_WARM_NO_PRECIP)
   endif()
@@ -402,11 +409,14 @@ function(build_erf_lib_erf erf_lib_name)
      target_link_libraries(${erf_lib_name} PUBLIC yakl)
      target_link_libraries(${erf_lib_name} PUBLIC rrtmgp)
   endif()
+  else()
+  
+  endif()
 endfunction(build_erf_lib_erf)
 
 function(build_erf_lib_amrex erf_lib_name)
   #Link to amrex library
-  target_link_libraries_system(${erf_lib_name} PUBLIC amrex)
+  target_link_libraries_system(${erf_lib_name} PUBLIC AMReX::amrex)
   target_link_libraries_system(${erf_lib_name} PUBLIC AMReX-Hydro::amrex_hydro_api)
   if(ERF_ENABLE_CUDA)
     set(pctargets "${erf_lib_name}")

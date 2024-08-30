@@ -6,9 +6,9 @@ mkdir test
 cd test
 export TOP=$(pwd)
 
-git clone git@github.com:mukul1992/ERF.git --branch preserve-amrw-coupling --single-branch # <folder>
-git clone git@github.com:mukul1992/amr-wind.git --branch preserve-erf-coupling --single-branch # <folder> 
-git clone git@github.com:erf-model/erf-amrwind-driver.git
+git clone git@github.com:jmsexton03/ERF.git --branch splitting_build --single-branch # <folder>
+git clone git@github.com:jmsexton03/amr-wind.git --branch splitting_build --single-branch # <folder>
+git clone git@github.com:jmsexton03/erf-amrwind-driver.git --branch splitting_build --single-branch # <folder>
 
 cd ${TOP}/ERF
 git submodule update --init

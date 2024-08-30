@@ -5,7 +5,7 @@
 mkdir test
 cd test
 export TOP=$(pwd)
-if false; then
+
 git clone git@github.com:mukul1992/ERF.git --branch preserve-amrw-coupling --single-branch # <folder>
 git clone git@github.com:mukul1992/amr-wind.git --branch preserve-erf-coupling --single-branch # <folder> 
 git clone git@github.com:erf-model/erf-amrwind-driver.git
@@ -104,7 +104,7 @@ make -j16
 make install
 
 cd ${TOP}
-fi
+
 cd ${TOP}
 cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver/install-internal \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \

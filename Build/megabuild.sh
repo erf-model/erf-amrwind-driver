@@ -75,7 +75,7 @@ cmake -B ${TOP}/amr-wind-build-internal -DAMR_WIND_USE_INTERNAL_AMREX=ON -DAMR_W
 cd amr-wind-build-internal
 make -j16
 make install
-
+if false; then
 cd ${TOP}
 cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver/install \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \
@@ -104,7 +104,7 @@ make -j16
 make install
 
 cd ${TOP}
-
+fi
 cd ${TOP}
 cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver/install-internal \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \

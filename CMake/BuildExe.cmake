@@ -364,9 +364,10 @@ if (${DRIVER_USE_INTERNAL_ERF})
     )
   endif()
 
+  list(PREPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../amrex/build/lib/cmake/AMReX/AMReXCMakeModules/")
   include(AMReXBuildInfo)
   generate_buildinfo(${erf_lib_name} ${CMAKE_SOURCE_DIR})
-  target_include_directories(${erf_lib_name} PUBLIC ${AMREX_SUBMOD_LOCATION}/Tools/C_scripts)
+#  target_include_directories(${erf_lib_name} PUBLIC ${AMREX_SUBMOD_LOCATION}/Tools/C_scripts)
 
   if(ERF_ENABLE_NETCDF)
     if(NETCDF_FOUND)

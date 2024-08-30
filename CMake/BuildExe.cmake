@@ -220,16 +220,32 @@ if (${DRIVER_USE_INTERNAL_ERF})
 
   if(ERF_ENABLE_POISSON_SOLVE)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/Utils/ERF_PoissonSolve.cpp)
+                   ${ERF_SRC_DIR}/TimeIntegration/ERF_slow_rhs_inc.cpp
+                   ${ERF_SRC_DIR}/Utils/ERF_PoissonSolve.cpp
+                   ${ERF_SRC_DIR}/Utils/ERF_PoissonSolve_tb.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_POISSON_SOLVE)
   endif()
 
   if(ERF_ENABLE_PARTICLES)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/Particles/TracerPC.cpp
-                   ${ERF_SRC_DIR}/Particles/HydroPC.cpp)
+                   ${ERF_SRC_DIR}/Particles/ERFPCEvolve.cpp
+                   ${ERF_SRC_DIR}/Particles/ERFPCInitializations.cpp
+                   ${ERF_SRC_DIR}/Particles/ERFPCUtils.cpp
+                   ${ERF_SRC_DIR}/Particles/ERFTracers.cpp)
     target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Particles)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_PARTICLES)
+  endif()
+
+  if(ERF_ENABLE_EB)
+    target_sources(${erf_lib_name} PRIVATE
+                   ${ERF_SRC_DIR}/EB/Init_EB.cpp
+                   ${ERF_SRC_DIR}/EB/eb_box.cpp
+                   ${ERF_SRC_DIR}/EB/eb_cylinder.cpp
+                   ${ERF_SRC_DIR}/EB/eb_regular.cpp
+                   ${ERF_SRC_DIR}/EB/initEB.cpp
+                   ${ERF_SRC_DIR}/EB/writeEBsurface.cpp)
+    target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/EB)
+    target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_EB)
   endif()
 
   if(ERF_ENABLE_NETCDF)
@@ -247,6 +263,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
 
   if(ERF_ENABLE_RRTMGP)
     target_sources(${erf_lib_name} PRIVATE
+                   ${ERF_SRC_DIR}/Utils/Orbit.cpp
                    ${ERF_SRC_DIR}/Radiation/Init_rrtmgp.cpp
                    ${ERF_SRC_DIR}/Radiation/Finalize_rrtmgp.cpp
                    ${ERF_SRC_DIR}/Radiation/Run_longwave_rrtmgp.cpp
@@ -278,10 +295,13 @@ if (${DRIVER_USE_INTERNAL_ERF})
      PRIVATE
        ${ERF_SRC_DIR}/Derive.cpp
        ${ERF_SRC_DIR}/ERF.cpp
+       ${ERF_SRC_DIR}/ERF_make_new_arrays.cpp
        ${ERF_SRC_DIR}/ERF_make_new_level.cpp
+       ${ERF_SRC_DIR}/ERF_read_waves.cpp
        ${ERF_SRC_DIR}/ERF_Tagging.cpp
        ${ERF_SRC_DIR}/Advection/AdvectionSrcForMom.cpp
        ${ERF_SRC_DIR}/Advection/AdvectionSrcForState.cpp
+       ${ERF_SRC_DIR}/Advection/AdvectionSrcForOpenBC.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ABLMost.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/MOSTAverage.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_cons.cpp
@@ -289,6 +309,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_yvel.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_zvel.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_bndryreg.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_realbdy.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatch.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatcher.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_PhysBCFunct.cpp
@@ -301,8 +322,6 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/Diffusion/ComputeStrain_N.cpp
        ${ERF_SRC_DIR}/Diffusion/ComputeStrain_T.cpp
        ${ERF_SRC_DIR}/Diffusion/ComputeTurbulentViscosity.cpp
-       ${ERF_SRC_DIR}/Diffusion/NumericalDiffusion.cpp
-       ${ERF_SRC_DIR}/Diffusion/PBLModels.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_custom.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_from_hse.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_from_input_sounding.cpp
@@ -310,6 +329,8 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/Initialization/ERF_init_from_metgrid.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_uniform.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init1d.cpp
+       ${ERF_SRC_DIR}/Initialization/ERF_init_TurbPert.cpp
+       ${ERF_SRC_DIR}/Initialization/ERF_input_sponge.cpp
        ${ERF_SRC_DIR}/IO/Checkpoint.cpp
        ${ERF_SRC_DIR}/IO/ERF_ReadBndryPlanes.cpp
        ${ERF_SRC_DIR}/IO/ERF_WriteBndryPlanes.cpp
@@ -318,6 +339,17 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/IO/ERF_WriteScalarProfiles.cpp
        ${ERF_SRC_DIR}/IO/Plotfile.cpp
        ${ERF_SRC_DIR}/IO/writeJobInfo.cpp
+       ${ERF_SRC_DIR}/IO/console_io.cpp
+       ${ERF_SRC_DIR}/PBL/ComputeDiffusivityMYNN25.cpp
+       ${ERF_SRC_DIR}/PBL/ComputeDiffusivityYSU.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs_ReadFromFile.cpp	  
+       ${ERF_SRC_DIR}/SourceTerms/ERF_make_buoyancy.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_add_thin_body_sources.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_make_mom_sources.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_make_sources.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_moist_set_rhs.cpp
+       ${ERF_SRC_DIR}/SourceTerms/NumericalDiffusion.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_ComputeTimestep.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_Advance.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_TimeStep.cpp
@@ -325,11 +357,9 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_microphysics.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_lsm.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_radiation.cpp
-       ${ERF_SRC_DIR}/TimeIntegration/ERF_make_buoyancy.cpp
-       #${ERF_SRC_DIR}/TimeIntegration/ERF_make_condensation_source.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_make_fast_coeffs.cpp
+       ${ERF_SRC_DIR}/TimeIntegration/ERF_make_tau_terms.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_slow_rhs_pre.cpp
-       ${ERF_SRC_DIR}/TimeIntegration/ERF_ApplySpongeZoneBCs.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_slow_rhs_post.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_fast_rhs_N.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_fast_rhs_T.cpp
@@ -338,21 +368,19 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/Utils/TerrainMetrics.cpp
        ${ERF_SRC_DIR}/Utils/VelocityToMomentum.cpp
        ${ERF_SRC_DIR}/Utils/InteriorGhostCells.cpp
+       ${ERF_SRC_DIR}/Utils/Time_Avg_Vel.cpp
        ${ERF_SRC_DIR}/Microphysics/SAM/Init_SAM.cpp
        ${ERF_SRC_DIR}/Microphysics/SAM/Cloud_SAM.cpp
        ${ERF_SRC_DIR}/Microphysics/SAM/IceFall.cpp
        ${ERF_SRC_DIR}/Microphysics/SAM/Precip.cpp
        ${ERF_SRC_DIR}/Microphysics/SAM/PrecipFall.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/Diagnose_SAM.cpp
        ${ERF_SRC_DIR}/Microphysics/SAM/Update_SAM.cpp
        ${ERF_SRC_DIR}/Microphysics/Kessler/Init_Kessler.cpp
        ${ERF_SRC_DIR}/Microphysics/Kessler/Kessler.cpp
-       ${ERF_SRC_DIR}/Microphysics/Kessler/Diagnose_Kessler.cpp
        ${ERF_SRC_DIR}/Microphysics/Kessler/Update_Kessler.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/Init_FE.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/FastEddy.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/Diagnose_FE.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/Update_FE.cpp
+       ${ERF_SRC_DIR}/WindFarmParametrization/Fitch/AdvanceFitch.cpp
+       ${ERF_SRC_DIR}/WindFarmParametrization/EWP/AdvanceEWP.cpp
+       ${ERF_SRC_DIR}/WindFarmParametrization/SimpleActuatorDisk/AdvanceSimpleAD.cpp
        ${ERF_SRC_DIR}/LandSurfaceModel/SLM/SLM.cpp
        ${ERF_SRC_DIR}/LandSurfaceModel/MM5/MM5.cpp
   )
@@ -360,7 +388,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
   if(NOT "${erf_exe_name}" STREQUAL "erf_unit_tests")
     target_sources(${erf_lib_name}
        PRIVATE
-         ${SRC_DIR}/main.cpp
+         ${ERF_SRC_DIR}/main.cpp
     )
   endif()
 
@@ -393,14 +421,20 @@ if (${DRIVER_USE_INTERNAL_ERF})
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Diffusion)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Initialization)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/IO)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/PBL)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/SourceTerms)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/TimeIntegration)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Utils)
   target_include_directories(${erf_lib_name} PUBLIC ${CMAKE_BINARY_DIR})
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Null)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/SAM)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Kessler)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/FastEddy)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Kessler) 
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization/Null)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization/Fitch)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization/EWP)
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization/SimpleActuatorDisk)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/Null)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/SLM)

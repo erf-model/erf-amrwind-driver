@@ -61,6 +61,7 @@ Problem::init_custom_pert(
     const amrex::Box& xbx,
     const amrex::Box& ybx,
     const amrex::Box& zbx,
+    amrex::Array4<amrex::Real const> const& /*state*/,
     amrex::Array4<amrex::Real      > const& state,
     amrex::Array4<amrex::Real      > const& x_vel,
     amrex::Array4<amrex::Real      > const& y_vel,

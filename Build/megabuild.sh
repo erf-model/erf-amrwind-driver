@@ -8,7 +8,7 @@ export TOP=$(pwd)
 
 git clone git@github.com:jmsexton03/ERF.git --branch splitting_build --single-branch # <folder>
 git clone git@github.com:jmsexton03/amr-wind.git --branch splitting_build --single-branch # <folder>
-git clone git@github.com:jmsexton03/erf-amrwind-driver.git --branch splitting_build --single-branch # <folder>
+git clone git@github.com:mukul1992/erf-amrwind-driver.git --branch splitting_build --single-branch # <folder>
 
 cd ${TOP}/ERF
 git submodule update --init

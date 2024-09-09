@@ -343,7 +343,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/PBL/ComputeDiffusivityMYNN25.cpp
        ${ERF_SRC_DIR}/PBL/ComputeDiffusivityYSU.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs.cpp
-       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs_ReadFromFile.cpp	  
+       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs_ReadFromFile.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_make_buoyancy.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_add_thin_body_sources.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_make_mom_sources.cpp
@@ -429,7 +429,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Null)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/SAM)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Kessler) 
+  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Kessler)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization/Null)
   target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/WindFarmParametrization/Fitch)
@@ -445,7 +445,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
      target_link_libraries(${erf_lib_name} PUBLIC rrtmgp)
   endif()
   else()
-  
+
   endif()
 endfunction(build_erf_lib_erf)
 
@@ -487,10 +487,11 @@ function(build_erf_lib_wrapper erf_lib_name)
     target_sources(${erf_lib_name} PRIVATE
                    ${SRC_DIR}/incflo_Evolve_MB.cpp
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
-                   ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
-                   ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
+                   ${SRC_DIR}/wind_energy/ABLReadERF.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
-    target_include_directories(${erf_lib_name} PUBLIC ${SRC_DIR}/MultiBlock)
+    target_include_directories(${erf_lib_name} PUBLIC
+                                ${SRC_DIR}/MultiBlock
+                                ${SRC_DIR}/wind_energy)
   endif()
 
   build_erf_lib_amrw(${erf_lib_name})

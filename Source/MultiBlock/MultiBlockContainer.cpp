@@ -1,6 +1,7 @@
 #include <MultiBlockContainer.H>
 #include <AMReX_NonLocalBC.H>
 #include <ERF.H>
+#include <ABLReadERF.H>
 
 // Vector input constructor
 MultiBlockContainer::MultiBlockContainer(const std::vector<amrex::RealBox>& rb_v,
@@ -16,6 +17,7 @@ MultiBlockContainer::MultiBlockContainer(const std::vector<amrex::RealBox>& rb_v
 {
     // Store ptr to container to call member functions
     amrwind.SetMultiBlockPointer(this);
+    amrwind.set_read_erf(read_erf);
     erf1.SetMultiBlockPointer(this);
 
     // Set the permutation/sign of dtos

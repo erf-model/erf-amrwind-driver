@@ -492,13 +492,13 @@ function(build_erf_lib_wrapper erf_lib_name)
   target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
   if(ERF_ENABLE_MULTIBLOCK)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/incflo_Evolve_MB.cpp
-                   ${ERF_SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
-                   ${ERF_SRC_DIR}/wind_energy/ABLReadERF.cpp)
+                   ${SRC_DIR}/incflo_Evolve_MB.cpp
+                   ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
+                   ${SRC_DIR}/wind_energy/ABLReadERF.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
     target_include_directories(${erf_lib_name} PRIVATE
-                                ${ERF_SRC_DIR}/MultiBlock
-                                ${ERF_SRC_DIR}/wind_energy)
+                                ${SRC_DIR}/MultiBlock
+                                ${SRC_DIR}/wind_energy)
   endif()
 
   build_erf_lib_amrw(${erf_lib_name})

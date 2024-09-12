@@ -23,9 +23,9 @@ git clone amr-wind/submods/AMReX-Hydro
 cd ${TOP}/amrex
 cmake -DBUILD_SHARED_LIBS=ON \
       -DAMReX_EB=OFF -DAMReX_PIC=YES \
-      -B ${TOP}/amrex/build -DCMAKE_INSTALL_PREFIX=${TOP}/amrex-install -S . \
+      -B ${TOP}/amrex-build -DCMAKE_INSTALL_PREFIX=${TOP}/amrex-install -S . \
       -DCMAKE_BUILD_TYPE:STRING=RELEASE
-cd ${TOP}/amrex/build
+cd ${TOP}/amrex-build
 make -j16
 make install
 
@@ -40,20 +40,6 @@ cd ${TOP}/AMReX-Hydro/build
 make -j16
 make install
 
-## comment out the ERF build as the sources are being
-## manually linked in the driver code
-if false; then
-cd ${TOP}/ERF
-git apply ${TOP}/../external_amrex_erf_fixes.patch
-head -n13 Build/cmake_multiblock.sh > ../erf_cmake_multiblock.sh
-echo "       -DERF_USE_INTERNAL_AMREX:BOOL=OFF \\" >> ../erf_cmake_multiblock.sh
-echo "       -DERF_ENABLE_TESTS:BOOL=OFF \\" >> ../erf_cmake_multiblock.sh
-echo "       -DCMAKE_PREFIX_PATH=${TOP}/amrex-install/lib/cmake/AMReX \\" >> ../erf_cmake_multiblock.sh
-tail -n 4 Build/cmake_multiblock.sh >> ../erf_cmake_multiblock.sh
-chmod +x ../erf_cmake_multiblock.sh
-#../erf_cmake_multiblock.sh
-#cd build
-#make install
 
 cmake -DBUILD_SHARED_LIBS=ON \
       -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/ERF/install \
@@ -75,7 +61,6 @@ cmake -DBUILD_SHARED_LIBS=ON \
 cd build
 make -j16
 make install
-fi
 
 cd ${TOP}
 cmake -DBUILD_SHARED_LIBS=ON \

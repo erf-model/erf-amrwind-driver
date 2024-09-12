@@ -2,10 +2,12 @@
 	path = Submodules/ERF
 	url = git@github.com:jmsexton03/ERF
 	shallow = true
+	branch = splitting_build_library
 [submodule "Submodules/amr-wind"]
 	path = Submodules/amr-wind
 	url = git@github.com:jmsexton03/amr-wind
 	shallow = true
+	branch = splitting_build
 [submodule "Submodules/amrex"]
 	path = Submodules/amrex
 	url = git@github.com:amrex-codes/amrex

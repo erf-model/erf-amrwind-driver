@@ -17,7 +17,7 @@ cd ${TOP}/amr-wind
 git submodule update --init
 
 cd ${TOP}
-git clone amr-wind/submods/amrex
+git clone ERF/Submodules/AMReX amrex
 git clone amr-wind/submods/AMReX-Hydro
 
 cd ${TOP}/amrex

@@ -445,7 +445,13 @@ if (${DRIVER_USE_INTERNAL_ERF})
      target_link_libraries(${erf_lib_name} PUBLIC rrtmgp)
   endif()
   else()
-
+  find_package(ERF REQUIRED)
+  message(STATUS "Found ERF = ${ERF_INCLUDE_DIR}")
+  message(STATUS "Found ERF = ${ERF_LIBRARY_DIR}")
+  target_link_libraries_system(${erf_lib_name} PUBLIC
+    ERF::erf_api)
+# target_link_libraries_system(${erf_lib_name} PUBLIC
+# ERF::buildInfoerf_obj)
   endif()
 endfunction(build_erf_lib_erf)
 
@@ -489,7 +495,7 @@ function(build_erf_lib_wrapper erf_lib_name)
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
                    ${SRC_DIR}/wind_energy/ABLReadERF.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
-    target_include_directories(${erf_lib_name} PUBLIC
+    target_include_directories(${erf_lib_name} PRIVATE
                                 ${SRC_DIR}/MultiBlock
                                 ${SRC_DIR}/wind_energy)
   endif()

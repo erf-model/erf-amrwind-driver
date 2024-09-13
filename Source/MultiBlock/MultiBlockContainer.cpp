@@ -156,7 +156,7 @@ MultiBlockContainer::AdvanceBlocks()
         amrex::Print() << "===================================="  << "\n";
         amrex::Print() << "           ERF BLOCK STARTS         "  << "\n";
         amrex::Print() << "------------------------------------"  << "\n";
-        erf1.Evolve_MB(step,1);
+        erf1.Evolve_MB(this,step,1);
         amrex::Print() << '\n';
         amrex::Print() << "------------------------------------"  << "\n";
         amrex::Print() << "        AMR-WIND BLOCK STARTS       "  << "\n";

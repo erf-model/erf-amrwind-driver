@@ -34,7 +34,7 @@ jobs:
       run: ${{github.workspace}}/ERF/Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
 
     - name: Configure Project and Generate Build System
-      env: {TOP: "${{github.workspace}}", TOP_MOD: "${TOP}/erf-amrwind-driver/Submodules"}
+      env: {TOP: "${{github.workspace}}/../", TOP_MOD: "${TOP}/erf-amrwind-driver/Submodules"}
       run: |
         cd ${TOP}/erf-amrwind-driver
         git submodule update --init --depth=1
@@ -146,13 +146,14 @@ jobs:
             -S ${TOP}/erf-amrwind-driver -B ${TOP}/erf-amrwind-driver-build
 
     - name: Compile and Link
+      env: {TOP: "${{github.workspace}}/../", TOP_MOD: "${TOP}/erf-amrwind-driver/Submodules"}
       run: |
-        export TOP=${{github.workspace}}
         cd ${TOP}/erf-amrwind-driver-build
         make -j16
         make install
 
     - name: Run Couette flow problem
+      env: {TOP: "${{github.workspace}}/../", TOP_MOD: "${TOP}/erf-amrwind-driver/Submodules"}
       run: |
         export TOP=${{github.workspace}}
         cd ${TOP}/erf-amrwind-driver-install/bin

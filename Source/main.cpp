@@ -176,8 +176,13 @@ int main (int argc, char* argv[])
         ERF erf;
 
         // initialize AMR data
-        erf.InitData();
-
+        erf.InitData_pre();
+        // Multiblock: hook to set BL & comms once ba/dm are known
+        if(domain_p[0].bigEnd(0) < 500 ) {
+            mbc.SetBoxLists();
+            mbc.SetBlockCommMetaData();
+        }
+        erf.InitData_post();
         // advance solution to final time
         erf.Evolve();
 

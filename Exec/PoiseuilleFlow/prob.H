@@ -5,7 +5,7 @@
 
 #include "AMReX_REAL.H"
 
-#include "prob_common.H"
+#include "ERF_prob_common.H"
 
 struct ProbParm : ProbParmDefaults {
   amrex::Real rho_0 = 1.0;
@@ -19,7 +19,7 @@ class Problem : public ProblemBase
 public:
     Problem();
 
-#include "Prob/init_constant_density_hse.H"
+#include "ERF_init_constant_density_hse.H"
 
     void init_custom_pert (
         const amrex::Box&  bx,

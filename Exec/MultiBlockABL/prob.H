@@ -5,7 +5,7 @@
 
 #include "AMReX_REAL.H"
 
-#include "prob_common.H"
+#include "ERF_prob_common.H"
 
 struct ProbParm : ProbParmDefaults {
   bool use_bubble = 0;
@@ -53,18 +53,19 @@ class Problem : public ProblemBase
 public:
     Problem(const amrex::Real* problo, const amrex::Real* probhi);
 
-#include "Prob/init_constant_density_hse.H"
-#include "Prob/init_rayleigh_damping.H"
+#include "ERF_init_constant_density_hse.H"
+#include "ERF_init_rayleigh_damping.H"
 
     void init_custom_pert (
         const amrex::Box&  bx,
         const amrex::Box& xbx,
         const amrex::Box& ybx,
         const amrex::Box& zbx,
-        amrex::Array4<amrex::Real      > const& state,
-        amrex::Array4<amrex::Real      > const& x_vel,
-        amrex::Array4<amrex::Real      > const& y_vel,
-        amrex::Array4<amrex::Real      > const& z_vel,
+        amrex::Array4<amrex::Real const> const& state,
+        amrex::Array4<amrex::Real      > const& state_pert,
+        amrex::Array4<amrex::Real      > const& x_vel_pert,
+        amrex::Array4<amrex::Real      > const& y_vel_pert,
+        amrex::Array4<amrex::Real      > const& z_vel_pert,
         amrex::Array4<amrex::Real      > const& r_hse,
         amrex::Array4<amrex::Real      > const& p_hse,
         amrex::Array4<amrex::Real const> const& z_nd,

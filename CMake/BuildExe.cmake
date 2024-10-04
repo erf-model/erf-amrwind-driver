@@ -7,29 +7,9 @@ function(target_link_libraries_system target visibility)
   endforeach(lib)
 endfunction(target_link_libraries_system)
 
-function(build_erf_lib erf_lib_name)
+function(build_erf_lib_amrw erf_lib_name)
 
-  set(SRC_DIR ${CMAKE_SOURCE_DIR}/Source)
-  set(BIN_DIR ${CMAKE_BINARY_DIR}/Source/${erf_lib_name})
-  set(ERF_SRC_DIR  ${ERF_HOME}/Source)
-  set(AMRW_SRC_DIR  ${AMRWIND_HOME}/amr-wind)
-
-  include(${CMAKE_SOURCE_DIR}/CMake/SetERFCompileFlags.cmake)
-  set_erf_compile_flags(${erf_lib_name})
-
-  target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MOISTURE)
-
-  target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
-  if(ERF_ENABLE_MULTIBLOCK)
-    target_sources(${erf_lib_name} PRIVATE
-                   ${SRC_DIR}/incflo_Evolve_MB.cpp
-                   ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
-                   ${SRC_DIR}/wind_energy/ABLBoundaryPlane.cpp
-                   ${SRC_DIR}/wind_energy/ABLFieldInit.cpp)
-    target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
-    target_include_directories(${erf_lib_name} PUBLIC ${SRC_DIR}/MultiBlock)
-  endif()
-
+if (${DRIVER_USE_INTERNAL_AMRWIND})
   # Generate AMR-Wind version header
   configure_file("${AMRWIND_HOME}/cmake/AMRWindVersion.H.in"
   "${CMAKE_BINARY_DIR}/amr-wind/AMRWindVersion.H" @ONLY)
@@ -215,49 +195,84 @@ function(build_erf_lib erf_lib_name)
   target_include_directories(${erf_lib_name} SYSTEM PUBLIC
                             ${AMRW_SRC_DIR}/../
                             )
+else()
 
+#set(AMR_WIND_USE_INTERNAL_AMREX OFF CACHE INTERNAL "" )
+#set(AMR_WIND_USE_INTERNAL_AMREX_HYDRO OFF CACHE INTERNAL "" )
+#add_subdirectory(${AMRWIND_HOME} amr-wind)
+#add_library(AMR-Wind::amrwind_api ALIAS amrwind_api)
+#add_library(AMR-Wind::buildInfoamrwind_obj ALIAS buildInfoamrwind_obj)
+find_package(AMR-Wind REQUIRED)
+message(STATUS "Found AMR-Wind = ${AMR_WIND_INCLUDE_DIR}")
+message(STATUS "Found AMR-Wind = ${AMR_WIND_LIBRARY_DIR}")
+target_link_libraries_system(${erf_lib_name} PUBLIC
+  AMR-Wind::amrwind_api)
+  target_link_libraries_system(${erf_lib_name} PUBLIC
+  AMR-Wind::buildInfoamrwind_obj)
+endif()
+endfunction(build_erf_lib_amrw)
+
+function(build_erf_lib_erf erf_lib_name)
+if (${DRIVER_USE_INTERNAL_ERF})
   if(ERF_ENABLE_WARM_NO_PRECIP)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_WARM_NO_PRECIP)
   endif()
 
   if(ERF_ENABLE_POISSON_SOLVE)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/Utils/ERF_PoissonSolve.cpp)
+                   ${ERF_SRC_DIR}/TimeIntegration/ERF_slow_rhs_inc.cpp
+                   ${ERF_SRC_DIR}/Utils/ERF_PoissonSolve.cpp
+                   ${ERF_SRC_DIR}/Utils/ERF_PoissonSolve_tb.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_POISSON_SOLVE)
   endif()
 
   if(ERF_ENABLE_PARTICLES)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/Particles/TracerPC.cpp
-                   ${ERF_SRC_DIR}/Particles/HydroPC.cpp)
-    target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Particles)
+                   ${ERF_SRC_DIR}/Particles/ERFPCEvolve.cpp
+                   ${ERF_SRC_DIR}/Particles/ERFPCInitializations.cpp
+                   ${ERF_SRC_DIR}/Particles/ERFPCUtils.cpp
+                   ${ERF_SRC_DIR}/Particles/ERFTracers.cpp)
+    target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Source/Particles>)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_PARTICLES)
+  endif()
+
+  if(ERF_ENABLE_EB)
+    target_sources(${erf_lib_name} PRIVATE
+                   ${ERF_SRC_DIR}/EB/Init_EB.cpp
+                   ${ERF_SRC_DIR}/EB/ERF_eb_box.cpp
+                   ${ERF_SRC_DIR}/EB/ERF_eb_cylinder.cpp
+                   ${ERF_SRC_DIR}/EB/ERF_eb_regular.cpp
+                   ${ERF_SRC_DIR}/EB/ERF_initEB.cpp
+                   ${ERF_SRC_DIR}/EB/ERF_writeEBsurface.cpp)
+    target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Source/EB>)
+    target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_EB)
   endif()
 
   if(ERF_ENABLE_NETCDF)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/IO/NCInterface.cpp
-                   ${ERF_SRC_DIR}/IO/NCPlotFile.cpp
-                   ${ERF_SRC_DIR}/IO/NCCheckpoint.cpp
-                   ${ERF_SRC_DIR}/IO/NCMultiFabFile.cpp
-                   ${ERF_SRC_DIR}/IO/ReadFromMetgrid.cpp
-                   ${ERF_SRC_DIR}/IO/ReadFromWRFBdy.cpp
-                   ${ERF_SRC_DIR}/IO/ReadFromWRFInput.cpp
-                   ${ERF_SRC_DIR}/IO/NCColumnFile.cpp)
+                   ${ERF_SRC_DIR}/IO/ERF_NCInterface.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_NCPlotFile.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_NCCheckpoint.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_NCMultiFabFile.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_ReadFromMetgrid.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_ReadFromWRFBdy.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_ReadFromWRFInput.cpp
+                   ${ERF_SRC_DIR}/IO/ERF_NCColumnFile.cpp)
     target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_NETCDF)
   endif()
 
   if(ERF_ENABLE_RRTMGP)
     target_sources(${erf_lib_name} PRIVATE
-                   ${ERF_SRC_DIR}/Radiation/Init_rrtmgp.cpp
-                   ${ERF_SRC_DIR}/Radiation/Finalize_rrtmgp.cpp
-                   ${ERF_SRC_DIR}/Radiation/Run_longwave_rrtmgp.cpp
-                   ${ERF_SRC_DIR}/Radiation/Run_shortwave_rrtmgp.cpp
-                   ${ERF_SRC_DIR}/Radiation/Cloud_rad_props.cpp
-                   ${ERF_SRC_DIR}/Radiation/Aero_rad_props.cpp
-                   ${ERF_SRC_DIR}/Radiation/Optics.cpp
-                   ${ERF_SRC_DIR}/Radiation/Radiation.cpp
-                   ${ERF_SRC_DIR}/Radiation/Albedo.cpp
+                   ${ERF_SRC_DIR}/Utils/ERF_Orbit.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Init_rrtmgp.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Finalize_rrtmgp.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Run_longwave_rrtmgp.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Run_shortwave_rrtmgp.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Cloud_rad_props.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Aero_rad_props.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Optics.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Radiation.cpp
+                   ${ERF_SRC_DIR}/Radiation/ERF_Albedo.cpp
                    ${ERF_HOME}/Submodules/RRTMGP/cpp/examples/mo_load_coefficients.cpp
                    ${ERF_HOME}/Submodules/RRTMGP/cpp/extensions/fluxes_byband/mo_fluxes_byband_kernels.cpp
                   )
@@ -278,33 +293,35 @@ function(build_erf_lib erf_lib_name)
 
   target_sources(${erf_lib_name}
      PRIVATE
-       ${ERF_SRC_DIR}/Derive.cpp
+       ${ERF_SRC_DIR}/ERF_Derive.cpp
        ${ERF_SRC_DIR}/ERF.cpp
+       ${ERF_SRC_DIR}/ERF_make_new_arrays.cpp
        ${ERF_SRC_DIR}/ERF_make_new_level.cpp
+       ${ERF_SRC_DIR}/ERF_read_waves.cpp
        ${ERF_SRC_DIR}/ERF_Tagging.cpp
-       ${ERF_SRC_DIR}/Advection/AdvectionSrcForMom.cpp
-       ${ERF_SRC_DIR}/Advection/AdvectionSrcForState.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/ABLMost.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/MOSTAverage.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_cons.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_xvel.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_yvel.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_zvel.cpp
-       ${ERF_SRC_DIR}/BoundaryConditions/BoundaryConditions_bndryreg.cpp
+       ${ERF_SRC_DIR}/Advection/ERF_AdvectionSrcForMom.cpp
+       ${ERF_SRC_DIR}/Advection/ERF_AdvectionSrcForState.cpp
+       ${ERF_SRC_DIR}/Advection/ERF_AdvectionSrcForOpenBC.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_ABLMost.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_MOSTAverage.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_BoundaryConditions_cons.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_BoundaryConditions_xvel.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_BoundaryConditions_yvel.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_BoundaryConditions_zvel.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_BoundaryConditions_bndryreg.cpp
+       ${ERF_SRC_DIR}/BoundaryConditions/ERF_BoundaryConditions_realbdy.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatch.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_FillPatcher.cpp
        ${ERF_SRC_DIR}/BoundaryConditions/ERF_PhysBCFunct.cpp
-       ${ERF_SRC_DIR}/Diffusion/DiffusionSrcForMom_N.cpp
-       ${ERF_SRC_DIR}/Diffusion/DiffusionSrcForMom_T.cpp
-       ${ERF_SRC_DIR}/Diffusion/DiffusionSrcForState_N.cpp
-       ${ERF_SRC_DIR}/Diffusion/DiffusionSrcForState_T.cpp
-       ${ERF_SRC_DIR}/Diffusion/ComputeStress_N.cpp
-       ${ERF_SRC_DIR}/Diffusion/ComputeStress_T.cpp
-       ${ERF_SRC_DIR}/Diffusion/ComputeStrain_N.cpp
-       ${ERF_SRC_DIR}/Diffusion/ComputeStrain_T.cpp
-       ${ERF_SRC_DIR}/Diffusion/ComputeTurbulentViscosity.cpp
-       ${ERF_SRC_DIR}/Diffusion/NumericalDiffusion.cpp
-       ${ERF_SRC_DIR}/Diffusion/PBLModels.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_DiffusionSrcForMom_N.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_DiffusionSrcForMom_T.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_DiffusionSrcForState_N.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_DiffusionSrcForState_T.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_ComputeStress_N.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_ComputeStress_T.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_ComputeStrain_N.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_ComputeStrain_T.cpp
+       ${ERF_SRC_DIR}/Diffusion/ERF_ComputeTurbulentViscosity.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_custom.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_from_hse.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_from_input_sounding.cpp
@@ -312,14 +329,27 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/Initialization/ERF_init_from_metgrid.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init_uniform.cpp
        ${ERF_SRC_DIR}/Initialization/ERF_init1d.cpp
-       ${ERF_SRC_DIR}/IO/Checkpoint.cpp
+       ${ERF_SRC_DIR}/Initialization/ERF_init_TurbPert.cpp
+       ${ERF_SRC_DIR}/Initialization/ERF_input_sponge.cpp
+       ${ERF_SRC_DIR}/IO/ERF_Checkpoint.cpp
        ${ERF_SRC_DIR}/IO/ERF_ReadBndryPlanes.cpp
        ${ERF_SRC_DIR}/IO/ERF_WriteBndryPlanes.cpp
        ${ERF_SRC_DIR}/IO/ERF_Write1DProfiles.cpp
        ${ERF_SRC_DIR}/IO/ERF_Write1DProfiles_stag.cpp
        ${ERF_SRC_DIR}/IO/ERF_WriteScalarProfiles.cpp
-       ${ERF_SRC_DIR}/IO/Plotfile.cpp
-       ${ERF_SRC_DIR}/IO/writeJobInfo.cpp
+       ${ERF_SRC_DIR}/IO/ERF_Plotfile.cpp
+       ${ERF_SRC_DIR}/IO/ERF_writeJobInfo.cpp
+       ${ERF_SRC_DIR}/IO/ERF_console_io.cpp
+       ${ERF_SRC_DIR}/PBL/ERF_ComputeDiffusivityMYNN25.cpp
+       ${ERF_SRC_DIR}/PBL/ERF_ComputeDiffusivityYSU.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs_ReadFromFile.cpp	  
+       ${ERF_SRC_DIR}/SourceTerms/ERF_make_buoyancy.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_add_thin_body_sources.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_make_mom_sources.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_make_sources.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_moist_set_rhs.cpp
+       ${ERF_SRC_DIR}/SourceTerms/ERF_NumericalDiffusion.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_ComputeTimestep.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_Advance.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_TimeStep.cpp
@@ -327,48 +357,46 @@ function(build_erf_lib erf_lib_name)
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_microphysics.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_lsm.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_advance_radiation.cpp
-       ${ERF_SRC_DIR}/TimeIntegration/ERF_make_buoyancy.cpp
-       #${ERF_SRC_DIR}/TimeIntegration/ERF_make_condensation_source.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_make_fast_coeffs.cpp
+       ${ERF_SRC_DIR}/TimeIntegration/ERF_make_tau_terms.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_slow_rhs_pre.cpp
-       ${ERF_SRC_DIR}/TimeIntegration/ERF_ApplySpongeZoneBCs.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_slow_rhs_post.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_fast_rhs_N.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_fast_rhs_T.cpp
        ${ERF_SRC_DIR}/TimeIntegration/ERF_fast_rhs_MT.cpp
-       ${ERF_SRC_DIR}/Utils/MomentumToVelocity.cpp
-       ${ERF_SRC_DIR}/Utils/TerrainMetrics.cpp
-       ${ERF_SRC_DIR}/Utils/VelocityToMomentum.cpp
-       ${ERF_SRC_DIR}/Utils/InteriorGhostCells.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/Init_SAM.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/Cloud_SAM.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/IceFall.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/Precip.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/PrecipFall.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/Diagnose_SAM.cpp
-       ${ERF_SRC_DIR}/Microphysics/SAM/Update_SAM.cpp
-       ${ERF_SRC_DIR}/Microphysics/Kessler/Init_Kessler.cpp
-       ${ERF_SRC_DIR}/Microphysics/Kessler/Kessler.cpp
-       ${ERF_SRC_DIR}/Microphysics/Kessler/Diagnose_Kessler.cpp
-       ${ERF_SRC_DIR}/Microphysics/Kessler/Update_Kessler.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/Init_FE.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/FastEddy.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/Diagnose_FE.cpp
-       ${ERF_SRC_DIR}/Microphysics/FastEddy/Update_FE.cpp
-       ${ERF_SRC_DIR}/LandSurfaceModel/SLM/SLM.cpp
-       ${ERF_SRC_DIR}/LandSurfaceModel/MM5/MM5.cpp
+       ${ERF_SRC_DIR}/Utils/ERF_ChopGrids.cpp
+       ${ERF_SRC_DIR}/Utils/ERF_MomentumToVelocity.cpp
+       ${ERF_SRC_DIR}/Utils/ERF_TerrainMetrics.cpp
+       ${ERF_SRC_DIR}/Utils/ERF_VelocityToMomentum.cpp
+       ${ERF_SRC_DIR}/Utils/ERF_InteriorGhostCells.cpp
+       ${ERF_SRC_DIR}/Utils/ERF_Time_Avg_Vel.cpp
+       ${ERF_SRC_DIR}/Microphysics/SAM/ERF_Init_SAM.cpp
+       ${ERF_SRC_DIR}/Microphysics/SAM/ERF_Cloud_SAM.cpp
+       ${ERF_SRC_DIR}/Microphysics/SAM/ERF_IceFall.cpp
+       ${ERF_SRC_DIR}/Microphysics/SAM/ERF_Precip.cpp
+       ${ERF_SRC_DIR}/Microphysics/SAM/ERF_PrecipFall.cpp
+       ${ERF_SRC_DIR}/Microphysics/SAM/ERF_Update_SAM.cpp
+       ${ERF_SRC_DIR}/Microphysics/Kessler/ERF_Init_Kessler.cpp
+       ${ERF_SRC_DIR}/Microphysics/Kessler/ERF_Kessler.cpp
+       ${ERF_SRC_DIR}/Microphysics/Kessler/ERF_Update_Kessler.cpp
+	   ${ERF_SRC_DIR}/WindFarmParametrization/Fitch/ERF_AdvanceFitch.cpp
+	   ${ERF_SRC_DIR}/WindFarmParametrization/EWP/ERF_AdvanceEWP.cpp
+	   ${ERF_SRC_DIR}/WindFarmParametrization/SimpleActuatorDisk/ERF_AdvanceSimpleAD.cpp
+       ${ERF_SRC_DIR}/LandSurfaceModel/SLM/ERF_SLM.cpp
+       ${ERF_SRC_DIR}/LandSurfaceModel/MM5/ERF_MM5.cpp
   )
 
   if(NOT "${erf_exe_name}" STREQUAL "erf_unit_tests")
     target_sources(${erf_lib_name}
        PRIVATE
-         ${SRC_DIR}/main.cpp
+         ${ERF_SRC_DIR}/main.cpp
     )
   endif()
 
+  list(PREPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/../amrex/build/lib/cmake/AMReX/AMReXCMakeModules/")
   include(AMReXBuildInfo)
   generate_buildinfo(${erf_lib_name} ${CMAKE_SOURCE_DIR})
-  target_include_directories(${erf_lib_name} PUBLIC ${AMREX_SUBMOD_LOCATION}/Tools/C_scripts)
+#  target_include_directories(${erf_lib_name} PUBLIC ${AMREX_SUBMOD_LOCATION}/Tools/C_scripts)
 
   if(ERF_ENABLE_NETCDF)
     if(NETCDF_FOUND)
@@ -387,33 +415,51 @@ function(build_erf_lib erf_lib_name)
   endif()
 
   #ERF include directories
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR})
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Advection)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/BoundaryConditions)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/DataStructs)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Diffusion)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Initialization)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/IO)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/TimeIntegration)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Utils)
-  target_include_directories(${erf_lib_name} PUBLIC ${CMAKE_BINARY_DIR})
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Null)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/SAM)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/Kessler)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/Microphysics/FastEddy)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/Null)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/SLM)
-  target_include_directories(${erf_lib_name} PUBLIC ${ERF_SRC_DIR}/LandSurfaceModel/MM5)
-
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Advection>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/BoundaryConditions>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/DataStructs>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Diffusion>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Initialization>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/IO>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Prob>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/PBL>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/SourceTerms>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/TimeIntegration>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Utils>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/Null>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/SAM>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/Kessler>) 
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization/Null>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization/Fitch>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization/EWP>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization/SimpleActuatorDisk>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel/Null>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel/SLM>)
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel/MM5>)
+    
   if(ERF_ENABLE_RRTMGP)
      target_link_libraries(${erf_lib_name} PUBLIC yakl)
      target_link_libraries(${erf_lib_name} PUBLIC rrtmgp)
   endif()
+  else()
+  find_package(ERF REQUIRED)
+  message(STATUS "Found ERF = ${ERF_INCLUDE_DIR}")
+  message(STATUS "Found ERF = ${ERF_LIBRARY_DIR}")
+  target_link_libraries_system(${erf_lib_name} PUBLIC
+    ERF::erf_api)
+# target_link_libraries_system(${erf_lib_name} PUBLIC
+# ERF::buildInfoerf_obj)
+  endif()
+endfunction(build_erf_lib_erf)
 
+function(build_erf_lib_amrex erf_lib_name)
   #Link to amrex library
-  target_link_libraries_system(${erf_lib_name} PUBLIC amrex)
+  target_link_libraries_system(${erf_lib_name} PUBLIC AMReX::amrex)
   target_link_libraries_system(${erf_lib_name} PUBLIC AMReX-Hydro::amrex_hydro_api)
   if(ERF_ENABLE_CUDA)
     set(pctargets "${erf_lib_name}")
@@ -430,13 +476,44 @@ function(build_erf_lib erf_lib_name)
     CUDA_RESOLVE_DEVICE_SYMBOLS ON)
   endif()
 
+endfunction(build_erf_lib_amrex)
+
+function(build_erf_lib_wrapper erf_lib_name)
+
+  set(SRC_DIR ${CMAKE_SOURCE_DIR}/Source)
+  set(BIN_DIR ${CMAKE_BINARY_DIR}/Source/${erf_lib_name})
+  set(ERF_SRC_DIR  ${ERF_HOME}/Source)
+  set(AMRW_SRC_DIR  ${AMRWIND_HOME}/amr-wind)
+
+  include(${CMAKE_SOURCE_DIR}/CMake/SetERFCompileFlags.cmake)
+  set_erf_compile_flags(${erf_lib_name})
+
+  target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MOISTURE)
+
+  target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
+  if(ERF_ENABLE_MULTIBLOCK)
+    target_sources(${erf_lib_name} PRIVATE
+                   ${SRC_DIR}/incflo_Evolve_MB.cpp
+                   ${SRC_DIR}/ERF_Evolve_MB.cpp
+                   ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
+                   ${SRC_DIR}/wind_energy/ABLReadERF.cpp)
+    target_compile_definitions(${erf_lib_name} PUBLIC ERF_USE_MULTIBLOCK)
+    target_include_directories(${erf_lib_name} PRIVATE
+                                ${SRC_DIR}/MultiBlock
+                                ${SRC_DIR}/wind_energy)
+  endif()
+
+  build_erf_lib_amrw(${erf_lib_name})
+  build_erf_lib_erf(${erf_lib_name})
+  build_erf_lib_amrex(${erf_lib_name})
+
   #Define what we want to be installed during a make install
   install(TARGETS ${erf_lib_name}
           RUNTIME DESTINATION bin
           ARCHIVE DESTINATION lib
           LIBRARY DESTINATION lib)
 
-endfunction(build_erf_lib)
+endfunction(build_erf_lib_wrapper)
 
 function(build_erf_exe erf_exe_name)
 

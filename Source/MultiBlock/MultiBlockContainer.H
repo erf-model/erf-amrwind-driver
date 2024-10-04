@@ -43,6 +43,33 @@ public:
   //void PopulateErfTimesteps (amrex::Vector<amrex::Real> tsteps) const {erf1.CoarseTimeState(/*tsteps*/);}
   void PopulateErfTimesteps(amrex::Real* tsteps);
 
+    // Constructor with vector of parameters
+    MultiBlockContainer (const std::vector<amrex::RealBox>& rb_v,
+                         std::vector<int> max_level_in_v,
+                         const std::vector<amrex::Vector<int>>& n_cell_in_v,
+                         std::vector<int> coord_v,
+                         const std::vector<amrex::Vector<amrex::IntVect>>& ref_ratios_v,
+                         const std::vector<amrex::Array<int,AMREX_SPACEDIM>>& is_per_v,
+                         std::vector<std::string> prefix_v,
+                         int max_step, int is_erf);
+    // Destructor
+//    ~MultiBlockContainer ();
+
+    // Initialize block data
+    void ERF_InitializeBlocks ();
+
+    // Set up BoxList vector for use with Communication Meta Data
+    void ERF_SetBoxLists ();
+
+    // Set up MB Communication Meta Data
+    void ERF_SetBlockCommMetaData ();
+
+    // Advance blocks
+    void ERF_AdvanceBlocks ();
+
+    // Fill MFs from other block(s)
+    void ERF_FillPatchBlocks (int src_ind, int dst_ind);
+
 private:
   std::vector<amrex::Box> eboxvec_afrome;
   std::vector<amrex::Box> aboxvec_afrome;
@@ -59,6 +86,11 @@ private:
     amrex::Box ebox_efroma;
     amrex::Box abox_efroma;
   //std::vector<std::vector<amrex::NonLocalBC::MultiBlockCommMetaData*>> cmd_afrome;
+
+    ERF erf2;
+    amrex::NonLocalBC::MultiBlockIndexMapping dtos;
+    std::vector<std::vector<amrex::NonLocalBC::MultiBlockCommMetaData*>> cmd;
+    std::vector<amrex::BoxList> blv;
 };
 
 #endif

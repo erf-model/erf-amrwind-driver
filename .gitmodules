@@ -1,8 +1,7 @@
 [submodule "Submodules/ERF"]
 	path = Submodules/ERF
-	url = https://github.com/jmsexton03/ERF
+	url = git@github.com:erf-model/ERF.git
 	shallow = true
-#	branch = splitting_build_library
 [submodule "Submodules/AMReX-Hydro"]
 	path = Submodules/AMReX-Hydro
 	url = https://github.com/amrex-codes/AMReX-Hydro

@@ -10,3 +10,6 @@
 [submodule "Submodules/amrex"]
 	path = Submodules/amrex
 	url = git@github.com:AMReX-Codes/amrex.git
+[submodule "Submodules/amr-wind"]
+	path = Submodules/amr-wind
+	url = git@github.com:erf-model/amr-wind.git

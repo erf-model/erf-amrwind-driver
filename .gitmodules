@@ -3,11 +3,6 @@
 	url = https://github.com/jmsexton03/ERF
 	shallow = true
 #	branch = splitting_build_library
-[submodule "Submodules/amr-wind"]
-	path = Submodules/amr-wind
-	url = https://github.com/jmsexton03/amr-wind
-	shallow = true
-#	branch = splitting_build_library
 [submodule "Submodules/AMReX-Hydro"]
 	path = Submodules/AMReX-Hydro
 	url = https://github.com/amrex-codes/AMReX-Hydro

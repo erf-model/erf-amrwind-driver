@@ -14,7 +14,7 @@ cd ${TOP}/erf-amrwind-driver
 git submodule update --init --depth=1
 
 cd ${TOP_MOD}/amrex
-cmake -DBUILD_SHARED_LIBS=ON \
+cmake -DBUILD_SHARED_LIBS=OFF \
       -DAMReX_EB=OFF -DAMReX_PIC=YES \
       -B ${TOP}/amrex-build -DCMAKE_INSTALL_PREFIX=${TOP}/amrex-install -S ${TOP_MOD}/amrex \
       -DCMAKE_BUILD_TYPE:STRING=RELEASE
@@ -23,7 +23,7 @@ make -j16
 make install
 
 cd ${TOP_MOD}/AMReX-Hydro
-cmake -DBUILD_SHARED_LIBS=ON \
+cmake -DBUILD_SHARED_LIBS=OFF \
       -DAMReX_EB=OFF -DHYDRO_EB=OFF \
       -B ${TOP}/AMReX-Hydro-build -DCMAKE_INSTALL_PREFIX=${TOP}/AMReX-Hydro-install -S ${TOP_MOD}/AMReX-Hydro \
       -DAMReX_ROOT=${TOP}/amrex-install/lib/cmake/AMReX/ \
@@ -33,9 +33,7 @@ cd ${TOP}/AMReX-Hydro-build
 make -j16
 make install
 
-
-cmake -DBUILD_SHARED_LIBS=ON \
-      -DCMAKE_SHARED_LINKER_FLAGS:STRING="-undefined dynamic_lookup" \
+cmake -DBUILD_SHARED_LIBS=OFF \
       -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/ERF-install \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \
       -DCMAKE_C_COMPILER:STRING=mpicc \

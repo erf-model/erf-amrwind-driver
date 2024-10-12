@@ -44,7 +44,8 @@ void add_par () {
    int blocking_factor = 1;
    pp.queryAdd("blocking_factor",blocking_factor);
 
-   pp.add("n_error_buf",0);
+   int n_error_buf = 0;
+   pp.queryAdd("n_error_buf",n_error_buf);
 }
 
 /**
@@ -53,6 +54,39 @@ void add_par () {
 */
 int main (int argc, char* argv[])
 {
+
+#ifdef AMREX_USE_MPI
+    MPI_Init(&argc, &argv);
+#endif
+
+    if (argc < 2) {
+        // Print usage and exit with error code if no input file was provided.
+        ERF::print_usage(MPI_COMM_WORLD, std::cout);
+        ERF::print_error(
+            MPI_COMM_WORLD, "No input file provided. Exiting!!");
+        return 1;
+    }
+
+    // Look for "-h" or "--help" flag and print usage
+    for (auto i = 1; i < argc; i++) {
+        const std::string param(argv[i]);
+        if ((param == "--help") || (param == "-h") || (param == "--usage")) {
+            ERF::print_banner(MPI_COMM_WORLD, std::cout);
+            ERF::print_usage(MPI_COMM_WORLD, std::cout);
+            return 0;
+        }
+    }
+
+    if (!amrex::FileSystem::Exists(std::string(argv[1]))) {
+        // Print usage and exit with error code if we cannot find the input file
+        ERF::print_usage(MPI_COMM_WORLD, std::cout);
+        ERF::print_error(
+            MPI_COMM_WORLD, "Input file does not exist = " +
+                                std::string(argv[1]) + ". Exiting!!");
+        return 1;
+    }
+
+  //  print_banner(MPI_COMM_WORLD, std::cout);
     // Check to see if the command line contains --describe
     if (argc >= 2) {
         for (auto i = 1; i < argc; i++) {
@@ -166,7 +200,7 @@ int main (int argc, char* argv[])
         // Initialize data
         mbc.InitializeBlocks();
 
-        // Advane blocks a timestep
+        // Advance blocks a timestep
         mbc.AdvanceBlocks();
     }
 #else
@@ -176,13 +210,8 @@ int main (int argc, char* argv[])
         ERF erf;
 
         // initialize AMR data
-        erf.InitData_pre();
-        // Multiblock: hook to set BL & comms once ba/dm are known
-        if(domain_p[0].bigEnd(0) < 500 ) {
-            mbc.SetBoxLists();
-            mbc.SetBlockCommMetaData();
-        }
-        erf.InitData_post();
+        erf.InitData();
+
         // advance solution to final time
         erf.Evolve();
 
@@ -201,4 +230,8 @@ int main (int argc, char* argv[])
     BL_PROFILE_VAR_STOP(pmain);
 
     amrex::Finalize();
+
+#ifdef AMREX_USE_MPI
+    MPI_Finalize();
+#endif
 }

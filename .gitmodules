@@ -4,7 +4,7 @@
 	shallow = true
 [submodule "Submodules/AMReX-Hydro"]
 	path = Submodules/AMReX-Hydro
-	url = https://github.com/amrex-codes/AMReX-Hydro
+	url = git@github.com:AMReX-Fluids/AMReX-Hydro.git
 	shallow = true
 [submodule "Submodules/amrex"]
 	path = Submodules/amrex

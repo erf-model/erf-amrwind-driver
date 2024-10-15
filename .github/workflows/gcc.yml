@@ -19,7 +19,7 @@ jobs:
       run: |
         cd ${{github.workspace}}
         git submodule update --init --depth=1
-        ${{github.workspace}}/Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
+        ${{github.workspace}}/Submodules/amrex/.github/workflows/dependencies/dependencies.sh
 
     - name: Run megabuild script
       run: |

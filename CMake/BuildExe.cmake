@@ -343,7 +343,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
        ${ERF_SRC_DIR}/PBL/ERF_ComputeDiffusivityMYNN25.cpp
        ${ERF_SRC_DIR}/PBL/ERF_ComputeDiffusivityYSU.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs.cpp
-       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs_ReadFromFile.cpp	  
+       ${ERF_SRC_DIR}/SourceTerms/ERF_ApplySpongeZoneBCs_ReadFromFile.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_make_buoyancy.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_add_thin_body_sources.cpp
        ${ERF_SRC_DIR}/SourceTerms/ERF_make_mom_sources.cpp
@@ -431,7 +431,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/Null>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/SAM>)
-  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/Kessler>) 
+  target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/Microphysics/Kessler>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization/Null>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/WindFarmParametrization/Fitch>)
@@ -441,7 +441,7 @@ if (${DRIVER_USE_INTERNAL_ERF})
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel/Null>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel/SLM>)
   target_include_directories(${erf_lib_name} PUBLIC $<BUILD_INTERFACE:${ERF_SRC_DIR}/LandSurfaceModel/MM5>)
-    
+
   if(ERF_ENABLE_RRTMGP)
      target_link_libraries(${erf_lib_name} PUBLIC yakl)
      target_link_libraries(${erf_lib_name} PUBLIC rrtmgp)
@@ -493,6 +493,7 @@ function(build_erf_lib_wrapper erf_lib_name)
   target_compile_definitions(${erf_lib_name} PUBLIC ERF_MB_EXTERN)
   if(ERF_ENABLE_MULTIBLOCK)
     target_sources(${erf_lib_name} PRIVATE
+                   ${SRC_DIR}/main.cpp
                    ${SRC_DIR}/incflo_Evolve_MB.cpp
                    ${SRC_DIR}/ERF_Evolve_MB.cpp
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp

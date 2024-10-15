@@ -6,7 +6,7 @@ using namespace amrex;
  */
 // advance solution over specified block steps
 void
-ERF::Evolve_MB (MultiBlockContainer* mbc, int MBstep, int max_block_step)
+ERF::Evolve_MB (int MBstep, int max_block_step)
 {
     Real cur_time = t_new[0];
 
@@ -31,15 +31,6 @@ ERF::Evolve_MB (MultiBlockContainer* mbc, int MBstep, int max_block_step)
         int lev = 0;
         int iteration = 1;
         timeStep(lev, cur_time, iteration);
-
-#ifndef ERF_MB_EXTERN
-        // DEBUG
-        // Multiblock: hook for erf2 to fill from erf1
-        if(domain_p[0].bigEnd(0) < 500) {
-            for (int var_idx = 0; var_idx < Vars::NumTypes; ++var_idx)
-                mbc->FillPatchBlocks(var_idx,var_idx);
-        }
-#endif
 
         cur_time  += dt[0];
 

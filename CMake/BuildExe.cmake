@@ -494,7 +494,7 @@ function(build_erf_lib_wrapper erf_lib_name)
   if(ERF_ENABLE_MULTIBLOCK)
     target_sources(${erf_lib_name} PRIVATE
                    ${SRC_DIR}/main.cpp
-                   ${SRC_DIR}/incflo_Evolve_MB.cpp
+                   ${SRC_DIR}/amrwind_Evolve_MB.cpp
                    ${SRC_DIR}/ERF_Evolve_MB.cpp
                    ${SRC_DIR}/MultiBlock/MultiBlockContainer.cpp
                    ${SRC_DIR}/wind_energy/ABLReadERF.cpp)

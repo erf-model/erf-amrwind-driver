@@ -19,7 +19,7 @@ jobs:
       run: |
         cd ${{github.workspace}}
         git submodule update --init --depth=1
-        ./Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
+        ${{github.workspace}}/Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
 
     - name: Run megabuild script
       run: |
@@ -28,5 +28,5 @@ jobs:
     - name: Run Couette flow problem
       run: |
         cd ${{github.workspace}}/../erf-amrwind-driver-install/bin
-        cp ../../erf-amrwind-driver/Exec/CouetteFlow/input* .
+        cp ${{github.workspace}}/Exec/CouetteFlow/input* .
         ./erf_mb_couette inputs_amrex

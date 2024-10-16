@@ -30,7 +30,11 @@ void incflo::Evolve_MB(int MBstep, int max_block_step)
 
         amrex::Real time1 = amrex::ParallelDescriptor::second();
         // Advance to time t + dt
-        do_advance();
+        for (int fixed_point_iteration = 0;
+             fixed_point_iteration < m_fixed_point_iterations;
+             ++fixed_point_iteration)
+            do_advance(fixed_point_iteration);
+
         amrex::Print() << std::endl;
         amrex::Real time2 = amrex::ParallelDescriptor::second();
         post_advance_work();

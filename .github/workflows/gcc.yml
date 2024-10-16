@@ -19,11 +19,12 @@ jobs:
       run: |
         cd ${{github.workspace}}
         git submodule update --init --depth=1
-        ${{github.workspace}}/Submodules/AMReX/.github/workflows/dependencies/dependencies.sh
+        ./Submodules/amrex/.github/workflows/dependencies/dependencies.sh
 
     - name: Run megabuild script
       run: |
-        ${{github.workspace}}/Build/megabuild.sh
+        cd ${{github.workspace}}/..
+        ./erf-amrwind-driver/Build/megabuild.sh
 
     - name: Run Couette flow problem
       run: |

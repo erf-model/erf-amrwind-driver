@@ -63,7 +63,7 @@ cmake -DBUILD_SHARED_LIBS=ON \
       -S ${TOP_MOD}/amr-wind \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro" \
       -DCMAKE_BUILD_TYPE:STRING=RELEASE \
-      -DERF_ENABLE_MULTIBLOCK:BOOL=ON
+      -DERF_AW_MULTIBLOCK:BOOL=ON
 cd ${TOP}/amr-wind-build
 make -j16
 make install

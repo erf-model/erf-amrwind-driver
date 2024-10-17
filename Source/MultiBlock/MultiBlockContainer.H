@@ -38,10 +38,16 @@ public:
     void FillPatchBlocksAE ();
 
     // Fill AMR-Wind Boundary Regsiter from ERF1
-  void CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& receive_br,  amrex::Orientation ori, amrex::Real time, const std::string& field);
+    void CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& receive_br,  amrex::Orientation ori, amrex::Real time, const std::string& field);
 
-  //void PopulateErfTimesteps (amrex::Vector<amrex::Real> tsteps) const {erf1.CoarseTimeState(/*tsteps*/);}
-  void PopulateErfTimesteps(amrex::Real* tsteps);
+    //void PopulateErfTimesteps (amrex::Vector<amrex::Real> tsteps) const {erf1.CoarseTimeState(/*tsteps*/);}
+    void PopulateErfTimesteps(amrex::Real* tsteps);
+
+    amrex::Vector<amrex::BndryRegister*> bndry1;
+    amrex::Vector<amrex::BndryRegister*> bndry2;
+
+    amrex::Real old_bndry_time;
+    amrex::Real new_bndry_time;
 
 private:
   std::vector<amrex::Box> eboxvec_afrome;

@@ -7,6 +7,8 @@
 export TOP=$(pwd)
 export TOP_MOD=$(pwd)/erf-amrwind-driver/Submodules
 
+export CXXFLAGS=-fPIC
+
 #git clone git@github.com:jmsexton03/erf-amrwind-driver.git --recurse-submodules --shallow-submodules --branch splitting_build --single-branch # <folder>
 #git clone git@github.com:jmsexton03/erf-amrwind-driver.git --branch splitting_build --single-branch # <folder>
 

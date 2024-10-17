@@ -51,31 +51,60 @@ MultiBlockContainer::~MultiBlockContainer()
 void
 MultiBlockContainer::InitializeBlocks()
 {
-  amrex::Print() << "    STARTING INITIALIZATION : \n";
-  amrex::Print() << "===================================="  << "\n";
-  amrex::Print() << "         ERF1 INITIALIZATION        "  << "\n";
-  amrex::Print() << "------------------------------------"  << "\n";
-  erf1.InitData();
-  amrex::Print() << '\n';
-  amrex::Print() << "------------------------------------"  << "\n";
-  amrex::Print() << "       AMRWIND INITIALIZATION       "  << "\n";
-  amrex::Print() << "------------------------------------"  << "\n";
-  amrwind.InitData();
-  amrex::Print() << '\n';
-  amrex::Print() << "------------------------------------"  << "\n";
-  amrex::Print() << "     MultiBlock Intitialization     "  << "\n";
-  amrex::Print() << "------------------------------------"  << "\n";
-  SetBoxLists();
-  SetBlockCommMetaData();
-  amrex::ParmParse pp("mbc");
-  do_two_way_coupling = false;
-  two_way_coupling_frequency = 1;
-  pp.query("do_two_way_coupling", do_two_way_coupling);
-  pp.query("two_way_coupling_frequency", two_way_coupling_frequency);
-  FillPatchBlocksAE();
-  amrex::Print() << "------------------------------------"  << "\n";
-  amrex::Print() << '\n';
+    amrex::Print() << "    STARTING INITIALIZATION : \n";
 
+    amrex::Print() << "===================================="  << "\n";
+    amrex::Print() << "         ERF1 INITIALIZATION        "  << "\n";
+    amrex::Print() << "------------------------------------"  << "\n";
+    erf1.InitData();
+
+    amrex::Print() << '\n';
+    amrex::Print() << "------------------------------------"  << "\n";
+    amrex::Print() << "       AMRWIND INITIALIZATION       "  << "\n";
+    amrex::Print() << "------------------------------------"  << "\n";
+
+    amrwind.InitData();
+
+    amrex::BoxArray ba(amrwind.boxArray(0));
+    amrex::DistributionMapping dm{ba};
+
+    const int in_rad = 1;
+    const int out_rad = 1;
+    const int extent_rad = 0;
+
+    // HACK HACK HACK -- velocity and temperature
+    int num_fields = 2;
+
+    bndry1.resize(num_fields);
+    bndry2.resize(num_fields) ;
+
+    // for (i = 0; i < nfields; i++) 
+    // TODO: THIS SHOULD BE LOOP OVER NFIELDS
+    {
+        // Velocity
+        bndry1[0] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 3);
+        bndry2[0] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 3);
+
+        // Temperature
+        bndry1[1] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 1);
+        bndry2[1] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 1);
+    }
+
+    amrex::Print() << '\n';
+    amrex::Print() << "------------------------------------"  << "\n";
+    amrex::Print() << "     MultiBlock Intitialization     "  << "\n";
+    amrex::Print() << "------------------------------------"  << "\n";
+
+    SetBoxLists();
+    SetBlockCommMetaData();
+    amrex::ParmParse pp("mbc");
+    do_two_way_coupling = false;
+    two_way_coupling_frequency = 1;
+    pp.query("do_two_way_coupling", do_two_way_coupling);
+    pp.query("two_way_coupling_frequency", two_way_coupling_frequency);
+    FillPatchBlocksAE();
+    amrex::Print() << "------------------------------------"  << "\n";
+    amrex::Print() << '\n';
 }
 
 // Set up BoxList vector for use with Communication Meta Data
@@ -151,18 +180,34 @@ MultiBlockContainer::AdvanceBlocks()
     amrex::Print() << "STARTING MAIN DRIVER FOR: " << m_max_step << " STEPS" << "\n";
     amrex::Print() << "\n";
 
-    for (int step(1); step <= m_max_step; ++step) {
-        amrex::Print() << "    STARTING ADVANCE DRIVER: " << step << "\n";
+    int aw_to_erf_dt_ratio = 5;
+
+    //
+    // NOTE: step here corresponds to the number of AMR-Wind steps taken
+    //
+    for (int step(0); step < m_max_step; ++step) {
+
+        if (step == 0) {
+            fill_old_bndry(bndry1,this);
+        }
+
+        amrex::Print() << "    STARTING ADVANCE DRIVER: " << step+1 << "\n";
         amrex::Print() << "===================================="  << "\n";
         amrex::Print() << "           ERF BLOCK STARTS         "  << "\n";
         amrex::Print() << "------------------------------------"  << "\n";
-        erf1.Evolve_MB(step,1);
+
+        erf1.Evolve_MB(aw_to_erf_dt_ratio*step+1,aw_to_erf_dt_ratio);
+
+        fill_new_bndry(bndry2,this);
+
         amrex::Print() << '\n';
         amrex::Print() << "------------------------------------"  << "\n";
         amrex::Print() << "        AMR-WIND BLOCK STARTS       "  << "\n";
         amrex::Print() << "------------------------------------"  << "\n";
-        amrwind.Evolve_MB(step,1);
-        if (do_two_way_coupling && ((step % two_way_coupling_frequency) == 0)) {
+
+        amrwind.Evolve_MB(step+1,1);
+
+        if (do_two_way_coupling && (((step+1) % two_way_coupling_frequency) == 0)) {
           amrex::Print() << '\n';
           amrex::Print() << "------------------------------------"  << "\n";
           amrex::Print() << "           FILLPATCH A->E           "  << "\n";
@@ -174,6 +219,10 @@ MultiBlockContainer::AdvanceBlocks()
         amrex::Print() << "          COMPLETE                  "  << "\n";
         amrex::Print() << "------------------------------------"  << "\n";
         amrex::Print() << "\n";
+
+        // TODO: THIS SHOULD BE LOOP OVER NFIELDS
+        std::swap(bndry2[0],bndry1[0]);
+        std::swap(bndry2[1],bndry1[1]);
     }
 }
 
@@ -195,9 +244,13 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
   // WARNING: for this to work properly we need to make sure the new state data is FillPatched
   //          old data is FillPatched at beginning of timestep and should be good
   //  amrex::Vector<amrex::MultiFab>& erf_data;
-  bool on_old_time{time == erf1.get_t_old()};
+  bool on_old_time{time == erf1.get_t_old()}; 
   bool on_new_time{time == erf1.get_t_new()};
   AMREX_ALWAYS_ASSERT(on_new_time || on_old_time);
+  amrex::Print() << " IN COPY ERF TO AWBR " << std::endl;
+  amrex::Print() << "    TIME IS " <<  time << std::endl;
+  amrex::Print() << "OLD TIME IS " <<  erf1.get_t_old() << std::endl;
+  amrex::Print() << "NEW TIME IS " <<  erf1.get_t_new() << std::endl;
   if (on_old_time) {
     amrex::Print() << std::endl << "FILLPATCHING _ " << field << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl << std::endl;
   }

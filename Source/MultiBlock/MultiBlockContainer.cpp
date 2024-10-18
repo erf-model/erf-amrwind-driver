@@ -180,7 +180,17 @@ MultiBlockContainer::AdvanceBlocks()
     amrex::Print() << "STARTING MAIN DRIVER FOR: " << m_max_step << " STEPS" << "\n";
     amrex::Print() << "\n";
 
-    int aw_to_erf_dt_ratio = 5;
+    int aw_to_erf_dt_ratio;
+    {
+      amrex::Real erf_dt = erf1.get_dt();
+      amrex::Real amrwind_dt = amrwind.time().delta_t();
+      amrex::Real aw_to_erf_dt = amrwind_dt / erf_dt;
+      aw_to_erf_dt_ratio = std::round(aw_to_erf_dt);
+      amrex::Real eps = 1e-8;
+      AMREX_ALWAYS_ASSERT(std::abs(aw_to_erf_dt - aw_to_erf_dt_ratio) <= eps);
+      amrex::Print() << "ERF will make " << aw_to_erf_dt_ratio
+                     << " steps for each AMR-Wind step." << std::endl;
+    }
 
     //
     // NOTE: step here corresponds to the number of AMR-Wind steps taken

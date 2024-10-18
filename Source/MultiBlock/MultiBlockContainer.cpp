@@ -78,7 +78,7 @@ MultiBlockContainer::InitializeBlocks()
     bndry1.resize(num_fields);
     bndry2.resize(num_fields) ;
 
-    // for (i = 0; i < nfields; i++) 
+    // for (i = 0; i < nfields; i++)
     // TODO: THIS SHOULD BE LOOP OVER NFIELDS
     {
         // Velocity
@@ -205,7 +205,7 @@ MultiBlockContainer::AdvanceBlocks()
         amrex::Print() << "        AMR-WIND BLOCK STARTS       "  << "\n";
         amrex::Print() << "------------------------------------"  << "\n";
 
-        amrwind.Evolve_MB(step+1,1);
+        amrwind.Evolve_MultiBlock(step+1,1);
 
         if (do_two_way_coupling && (((step+1) % two_way_coupling_frequency) == 0)) {
           amrex::Print() << '\n';
@@ -244,7 +244,7 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
   // WARNING: for this to work properly we need to make sure the new state data is FillPatched
   //          old data is FillPatched at beginning of timestep and should be good
   //  amrex::Vector<amrex::MultiFab>& erf_data;
-  bool on_old_time{time == erf1.get_t_old()}; 
+  bool on_old_time{time == erf1.get_t_old()};
   bool on_new_time{time == erf1.get_t_new()};
   AMREX_ALWAYS_ASSERT(on_new_time || on_old_time);
   amrex::Print() << " IN COPY ERF TO AWBR " << std::endl;

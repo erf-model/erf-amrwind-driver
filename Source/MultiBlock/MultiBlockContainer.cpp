@@ -78,7 +78,7 @@ MultiBlockContainer::InitializeBlocks()
     bndry1.resize(num_fields);
     bndry2.resize(num_fields) ;
 
-    // for (i = 0; i < nfields; i++) 
+    // for (i = 0; i < nfields; i++)
     // TODO: THIS SHOULD BE LOOP OVER NFIELDS
     {
         // Velocity
@@ -180,7 +180,17 @@ MultiBlockContainer::AdvanceBlocks()
     amrex::Print() << "STARTING MAIN DRIVER FOR: " << m_max_step << " STEPS" << "\n";
     amrex::Print() << "\n";
 
-    int aw_to_erf_dt_ratio = 5;
+    int aw_to_erf_dt_ratio;
+    {
+      amrex::Real erf_dt = erf1.get_dt(0);
+      amrex::Real amrwind_dt = amrwind.time().delta_t();
+      amrex::Real aw_to_erf_dt = amrwind_dt / erf_dt;
+      aw_to_erf_dt_ratio = std::round(aw_to_erf_dt);
+      amrex::Real eps = 1e-8;
+      AMREX_ALWAYS_ASSERT(std::abs(aw_to_erf_dt - aw_to_erf_dt_ratio) <= eps);
+      amrex::Print() << "ERF will make " << aw_to_erf_dt_ratio
+                     << " steps for each AMR-Wind step." << std::endl;
+    }
 
     //
     // NOTE: step here corresponds to the number of AMR-Wind steps taken
@@ -205,7 +215,7 @@ MultiBlockContainer::AdvanceBlocks()
         amrex::Print() << "        AMR-WIND BLOCK STARTS       "  << "\n";
         amrex::Print() << "------------------------------------"  << "\n";
 
-        amrwind.Evolve_MB(step+1,1);
+        amrwind.Evolve_MultiBlock(step+1,1);
 
         if (do_two_way_coupling && (((step+1) % two_way_coupling_frequency) == 0)) {
           amrex::Print() << '\n';
@@ -244,13 +254,13 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
   // WARNING: for this to work properly we need to make sure the new state data is FillPatched
   //          old data is FillPatched at beginning of timestep and should be good
   //  amrex::Vector<amrex::MultiFab>& erf_data;
-  bool on_old_time{time == erf1.get_t_old()}; 
-  bool on_new_time{time == erf1.get_t_new()};
+  bool on_old_time{time == erf1.get_t_old(0)};
+  bool on_new_time{time == erf1.get_t_new(0)};
   AMREX_ALWAYS_ASSERT(on_new_time || on_old_time);
   amrex::Print() << " IN COPY ERF TO AWBR " << std::endl;
   amrex::Print() << "    TIME IS " <<  time << std::endl;
-  amrex::Print() << "OLD TIME IS " <<  erf1.get_t_old() << std::endl;
-  amrex::Print() << "NEW TIME IS " <<  erf1.get_t_new() << std::endl;
+  amrex::Print() << "OLD TIME IS " <<  erf1.get_t_old(0) << std::endl;
+  amrex::Print() << "NEW TIME IS " <<  erf1.get_t_new(0) << std::endl;
   if (on_old_time) {
     amrex::Print() << std::endl << "FILLPATCHING _ " << field << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl << std::endl;
   }
@@ -366,8 +376,8 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
 
 void
 MultiBlockContainer::PopulateErfTimesteps (amrex::Real* tsteps) {
-  tsteps[0] = erf1.get_t_old();
-  tsteps[1] = erf1.get_t_new();
+  tsteps[0] = erf1.get_t_old(0);
+  tsteps[1] = erf1.get_t_new(0);
 }
 
 // Wrapper for ParallelCopy between ERF and AMRWIND

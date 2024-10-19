@@ -8,10 +8,10 @@ FILE = input_amrwind
 max_step  = 750
 stop_time = 600
 
-mbc.do_two_way_coupling = true
+mbc.do_two_way_coupling = false
 
 # VERBOSITY
-amr.v = 1       # verbosity in Amr.cpp
+amr.v = 0       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING
 amr.max_level = 0       # maximum level number allowed

@@ -182,7 +182,7 @@ MultiBlockContainer::AdvanceBlocks()
 
     int aw_to_erf_dt_ratio;
     {
-      amrex::Real erf_dt = erf1.get_dt();
+      amrex::Real erf_dt = erf1.get_dt(0);
       amrex::Real amrwind_dt = amrwind.time().delta_t();
       amrex::Real aw_to_erf_dt = amrwind_dt / erf_dt;
       aw_to_erf_dt_ratio = std::round(aw_to_erf_dt);
@@ -254,13 +254,13 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
   // WARNING: for this to work properly we need to make sure the new state data is FillPatched
   //          old data is FillPatched at beginning of timestep and should be good
   //  amrex::Vector<amrex::MultiFab>& erf_data;
-  bool on_old_time{time == erf1.get_t_old()};
-  bool on_new_time{time == erf1.get_t_new()};
+  bool on_old_time{time == erf1.get_t_old(0)};
+  bool on_new_time{time == erf1.get_t_new(0)};
   AMREX_ALWAYS_ASSERT(on_new_time || on_old_time);
   amrex::Print() << " IN COPY ERF TO AWBR " << std::endl;
   amrex::Print() << "    TIME IS " <<  time << std::endl;
-  amrex::Print() << "OLD TIME IS " <<  erf1.get_t_old() << std::endl;
-  amrex::Print() << "NEW TIME IS " <<  erf1.get_t_new() << std::endl;
+  amrex::Print() << "OLD TIME IS " <<  erf1.get_t_old(0) << std::endl;
+  amrex::Print() << "NEW TIME IS " <<  erf1.get_t_new(0) << std::endl;
   if (on_old_time) {
     amrex::Print() << std::endl << "FILLPATCHING _ " << field << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl << std::endl;
   }
@@ -376,8 +376,8 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
 
 void
 MultiBlockContainer::PopulateErfTimesteps (amrex::Real* tsteps) {
-  tsteps[0] = erf1.get_t_old();
-  tsteps[1] = erf1.get_t_new();
+  tsteps[0] = erf1.get_t_old(0);
+  tsteps[1] = erf1.get_t_new(0);
 }
 
 // Wrapper for ParallelCopy between ERF and AMRWIND

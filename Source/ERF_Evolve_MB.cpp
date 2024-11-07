@@ -41,12 +41,12 @@ ERF::Evolve_MB (int MBstep, int max_block_step)
 
         if (writeNow(cur_time, dt[0], step+1, m_plot_int_1, m_plot_per_1)) {
             last_plot_file_step_1 = step+1;
-            WritePlotFile(1,plot_var_names_1);
+            WritePlotFile(1,plotfile_type_1,plot_var_names_1);
         }
 
         if (writeNow(cur_time, dt[0], step+1, m_plot_int_2, m_plot_per_2)) {
             last_plot_file_step_2 = step+1;
-            WritePlotFile(2,plot_var_names_2);
+            WritePlotFile(2,plotfile_type_2,plot_var_names_2);
         }
 
         if (writeNow(cur_time, dt[0], step+1, m_check_int, m_check_per)) {

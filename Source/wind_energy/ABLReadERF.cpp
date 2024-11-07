@@ -6,7 +6,7 @@ void fill_old_bndry(amrex::Vector<amrex::BndryRegister*>& bndry,
     amrex::Vector<amrex::Real> m_in_times; m_in_times.resize(2);
     mbc->PopulateErfTimesteps(m_in_times.data());
 
-    // TODO -- need to loop over fields 
+    // TODO -- need to loop over fields
     // for (auto* fld : m_fields)
     {
 
@@ -44,7 +44,7 @@ void fill_new_bndry(amrex::Vector<amrex::BndryRegister*>& bndry,
     amrex::Vector<amrex::Real> m_in_times; m_in_times.resize(2);
     mbc->PopulateErfTimesteps(m_in_times.data());
 
-    // TODO -- need to loop over fields 
+    // TODO -- need to loop over fields
     // for (auto* fld : m_fields)
     {
        // auto& field = *fld;
@@ -66,14 +66,12 @@ void fill_new_bndry(amrex::Vector<amrex::BndryRegister*>& bndry,
     amrex::Print() << "Setting new bndryreg time to be " << mbc->new_bndry_time << std::endl;
 }
 
-void read_erf(const amr_wind::SimTime& m_time,
+void read_erf(const amrex::Real time,
               amrex::Vector<amrex::Real>& m_in_times,
               amr_wind::InletData& m_in_data,
               const amrex::Vector<amr_wind::Field*>& m_fields,
               MultiBlockContainer* mbc)
 {
-    amrex::Real time = m_time.new_time();
-
     amrex::Print() << " IN READ_ERF " << std::endl;
     amrex::Print() << "    TIME IS " <<  time << std::endl;
 
@@ -100,8 +98,6 @@ void read_erf(const amr_wind::SimTime& m_time,
         amrex::Print() << "OLD TIME FROM ERF IS " <<  m_in_times[0] << std::endl;
         amrex::Print() << "NEW TIME FROM ERF IS " <<  m_in_times[1] << std::endl;
 
-        AMREX_ALWAYS_ASSERT(m_in_times[0] <= time); // Can't go back in time for ERF data
-
         AMREX_ALWAYS_ASSERT((m_in_times[0]<= time) && (time <= m_in_times[1]));
 
         for (auto* fld : m_fields) {
@@ -112,18 +108,18 @@ void read_erf(const amr_wind::SimTime& m_time,
             amrex::Box domain = geom[lev].Domain();
             amrex::BoxArray ba(domain);
             amrex::DistributionMapping dm{ba};
-  
+
             const int in_rad = 1;
             const int out_rad = 1;
             const int extent_rad = 0;
-  
+
             amrex::BndryRegister bndry1(ba, dm, in_rad, out_rad, extent_rad, field.num_comp());
             amrex::BndryRegister bndry2(ba, dm, in_rad, out_rad, extent_rad, field.num_comp());
-  
+
             for (amrex::OrientationIter oit; oit != nullptr; ++oit)
             {
               auto ori = oit();
-  
+
               if (field.bc_type()[ori] == BC::mass_inflow and time >= 0.0) {
                   if (field.name() == "temperature") {
                     mbc->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
@@ -174,13 +170,12 @@ void read_erf(const amr_wind::SimTime& m_time,
             for (amrex::OrientationIter oit; oit != nullptr; ++oit)
             {
                 auto ori = oit();
-    
+
                 m_in_data.read_data_native(oit, *(mbc->bndry1[which]), *(mbc->bndry2[which]), lev, fld, time, m_in_times, true);
-                m_in_data.read_data_native(oit, *(mbc->bndry1[which]), *(mbc->bndry2[which]), lev, fld, time, m_in_times, true);
-    
+
             } // ori
-    
-            which += 1;
+
+            which += 1; //HACK HACK
 
         } // fields
 

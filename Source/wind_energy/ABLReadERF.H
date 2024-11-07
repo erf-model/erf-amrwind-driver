@@ -9,7 +9,7 @@ void fill_old_bndry(amrex::Vector<amrex::BndryRegister*>& bndry1,
 void fill_new_bndry(amrex::Vector<amrex::BndryRegister*>& bndry2,
                     MultiBlockContainer* mbc);
 
-void read_erf(const amr_wind::SimTime& m_time,
+void read_erf(const amrex::Real time,
               amrex::Vector<amrex::Real>& m_in_times,
               amr_wind::InletData& m_in_data,
               const amrex::Vector<amr_wind::Field*>& m_fields,

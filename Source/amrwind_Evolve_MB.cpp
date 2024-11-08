@@ -4,7 +4,7 @@ using namespace amrex;
 
 /** Perform time-integration with multiblock coupled with ERF
  */
-void incflo::Evolve_MB(int MBstep, int max_block_step)
+void incflo::Evolve_MultiBlock(int MBstep, int max_block_step)
 {
     BL_PROFILE("amr-wind::incflo::Evolve()");
 

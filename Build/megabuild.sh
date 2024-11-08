@@ -9,9 +9,6 @@ export TOP_MOD=$(pwd)/erf-amrwind-driver/Submodules
 
 export CXXFLAGS=-fPIC
 
-#git clone git@github.com:jmsexton03/erf-amrwind-driver.git --recurse-submodules --shallow-submodules --branch splitting_build --single-branch # <folder>
-#git clone git@github.com:jmsexton03/erf-amrwind-driver.git --branch splitting_build --single-branch # <folder>
-
 cd ${TOP}/erf-amrwind-driver
 git submodule update --init --depth=1
 
@@ -65,7 +62,7 @@ cmake -DBUILD_SHARED_LIBS=ON \
       -S ${TOP_MOD}/amr-wind \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro" \
       -DCMAKE_BUILD_TYPE:STRING=RELEASE \
-      -DERF_AW_MULTIBLOCK:BOOL=ON
+      -DERF_AMR_WIND_MULTIBLOCK:BOOL=ON
 cd ${TOP}/amr-wind-build
 make -j16
 make install
@@ -94,8 +91,5 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
 cd ${TOP}/erf-amrwind-driver-build
 make -j16
 make install
-#cd ${TOP}/erf-amrwind-driver-install/bin
-#cp ${TOP}/erf-amrwind-driver/Exec/CouetteFlow/input* .
-#./erf_mb_couette inputs_amrex
 
 cd ${TOP}

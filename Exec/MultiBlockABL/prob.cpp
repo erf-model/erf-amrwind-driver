@@ -16,7 +16,9 @@ Problem::Problem(const amrex::Real* problo, const amrex::Real* probhi)
   pp.query("rho_0", parms.rho_0);
   pp.query("T_0", parms.T_0);
   pp.query("A_0", parms.A_0);
-  pp.query("QKE_0", parms.QKE_0);
+  pp.query("KE_0", parms.KE_0);
+  pp.query("KE_decay_height", parms.KE_decay_height);
+  pp.query("KE_decay_order", parms.KE_decay_order);
 
   pp.query("U_0", parms.U_0);
   pp.query("V_0", parms.V_0);
@@ -25,6 +27,7 @@ Problem::Problem(const amrex::Real* problo, const amrex::Real* probhi)
   pp.query("V_0_Pert_Mag", parms.V_0_Pert_Mag);
   pp.query("W_0_Pert_Mag", parms.W_0_Pert_Mag);
   pp.query("T_0_Pert_Mag", parms.T_0_Pert_Mag);
+  pp.query("pert_rhotheta", parms.pert_rhotheta);
 
   pp.query("pert_deltaU", parms.pert_deltaU);
   pp.query("pert_deltaV", parms.pert_deltaV);
@@ -35,9 +38,6 @@ Problem::Problem(const amrex::Real* problo, const amrex::Real* probhi)
   parms.bval = parms.pert_periods_V * 2.0 * PI / (probhi[0] - problo[0]);
   parms.ufac = parms.pert_deltaU * std::exp(0.5) / parms.pert_ref_height;
   parms.vfac = parms.pert_deltaV * std::exp(0.5) / parms.pert_ref_height;
-
-  pp.query("dampcoef", parms.dampcoef);
-  pp.query("zdamp", parms.zdamp);
 
   // ABL-with-bubble
   pp.query("use_bubble", parms.use_bubble);
@@ -62,7 +62,7 @@ Problem::init_custom_pert(
     const amrex::Box& ybx,
     const amrex::Box& zbx,
     amrex::Array4<amrex::Real const> const& /*state*/,
-    amrex::Array4<amrex::Real      > const& state,
+    amrex::Array4<amrex::Real      > const& state_pert,
     amrex::Array4<amrex::Real      > const& x_vel,
     amrex::Array4<amrex::Real      > const& y_vel,
     amrex::Array4<amrex::Real      > const& z_vel,
@@ -98,7 +98,7 @@ Problem::init_custom_pert(
     // Add temperature perturbations
     if ((z <= parms.pert_ref_height) && (parms.T_0_Pert_Mag != 0.0)) {
         Real rand_double = amrex::Random(engine); // Between 0.0 and 1.0
-        state(i, j, k, RhoTheta_comp) = (rand_double*2.0 - 1.0)*parms.T_0_Pert_Mag;
+        state_pert(i, j, k, RhoTheta_comp) = (rand_double*2.0 - 1.0)*parms.T_0_Pert_Mag;
     }
 
     // For bubble
@@ -109,17 +109,26 @@ Problem::init_custom_pert(
     if (parms.use_bubble and geomdata.Domain().bigEnd(0) > 60) {
       amrex::Real radius = std::sqrt((x-bcx)*(x-bcx) + (y-bcy)*(y-bcy) + (z-bcz)*(z-bcz));
       ratio = 1.0 + (parms.bubble_temp_ratio - 1.0) * exp(-0.5 * radius* radius / (parms.bubble_radius * parms.bubble_radius));
-      state(i, j, k, RhoScalar_comp) = 300.0 * ratio * parms.rho_0;
+      state_pert(i, j, k, RhoScalar_comp) = 300.0 * ratio * parms.rho_0;
     }
     // Set scalar = A_0*exp(-10r^2), where r is distance from center of domain
-    //  state(i, j, k, RhoScalar_comp) = parms.A_0 * exp(-10.*r*r);
+    //  state_pert(i, j, k, RhoScalar_comp) = parms.A_0 * exp(-10.*r*r);
 
-    // Set an initial value for QKE
-    state(i, j, k, RhoQKE_comp) = parms.QKE_0;
+    // Set an initial value for SGS KE
+    if (state_pert.nComp() > RhoKE_comp) {
+        // Deardorff
+        state_pert(i, j, k, RhoKE_comp) = r_hse(i,j,k) * parms.KE_0;
+        if (parms.KE_decay_height > 0) {
+            // scale initial SGS kinetic energy with height
+            state_pert(i, j, k, RhoKE_comp) *= max(
+                std::pow(1 - min(z/parms.KE_decay_height,1.0), parms.KE_decay_order),
+                1e-12);
+        }
+    }
 
     if (use_moisture) {
-        state(i, j, k, RhoQ1_comp) = 0.0;
-        state(i, j, k, RhoQ2_comp) = 0.0;
+        state_pert(i, j, k, RhoQ1_comp) = 0.0;
+        state_pert(i, j, k, RhoQ2_comp) = 0.0;
     }
   });
 

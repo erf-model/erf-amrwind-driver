@@ -24,22 +24,23 @@ Problem::Problem()
 
 void
 Problem::init_custom_pert(
-    const Box& bx,
-    const Box& xbx,
-    const Box& ybx,
-    const Box& zbx,
-    amrex::Array4<Real> const& state,
-    amrex::Array4<Real> const& x_vel,
-    amrex::Array4<Real> const& y_vel,
-    amrex::Array4<Real> const& z_vel,
-    amrex::Array4<Real> const&,
-    amrex::Array4<Real> const&,
-    amrex::Array4<Real const> const&,
-    amrex::Array4<Real const> const&,
+    const amrex::Box&  bx,
+    const amrex::Box& xbx,
+    const amrex::Box& ybx,
+    const amrex::Box& zbx,
+    amrex::Array4<amrex::Real const> const& /*state*/,
+    amrex::Array4<amrex::Real      > const& state_pert,
+    amrex::Array4<amrex::Real      > const& x_vel,
+    amrex::Array4<amrex::Real      > const& y_vel,
+    amrex::Array4<amrex::Real      > const& z_vel,
+    amrex::Array4<amrex::Real      > const& /*r_hse*/,
+    amrex::Array4<amrex::Real      > const& /*p_hse*/,
+    amrex::Array4<amrex::Real const> const& /*z_nd*/,
+    amrex::Array4<amrex::Real const> const& /*z_cc*/,
     amrex::GeometryData const& geomdata,
-    Array4<Real const> const& /*mf_m*/,
-    Array4<Real const> const& /*mf_u*/,
-    Array4<Real const> const& /*mf_v*/,
+    amrex::Array4<amrex::Real const> const& /*mf_m*/,
+    amrex::Array4<amrex::Real const> const& /*mf_u*/,
+    amrex::Array4<amrex::Real const> const& /*mf_v*/,
     const SolverChoice& sc)
 {
     const bool use_moisture = (sc.moisture_type != MoistureType::None);
@@ -49,11 +50,11 @@ Problem::init_custom_pert(
     // Arbitrarily choose the radius of the bubble to be 0.05 times the length of the domain
 
     // Set scalar = A_0*exp(-10r^2), where r is distance from center of domain
-    state(i, j, k, RhoScalar_comp) = 0.0;
+    state_pert(i, j, k, RhoScalar_comp) = 0.0;
 
     if (use_moisture) {
-        state(i, j, k, RhoQ1_comp) = 0.0;
-        state(i, j, k, RhoQ2_comp) = 0.0;
+        state_pert(i, j, k, RhoQ1_comp) = 0.0;
+        state_pert(i, j, k, RhoQ2_comp) = 0.0;
     }
 
   });

@@ -12,6 +12,7 @@ incflo.verbose          =   0          # incflo_level
 incflo.gravity          =   0. 0. 0  # Gravitational force (3D)
 incflo.density          = 1.0          # Reference density
 incflo.use_godunov = 1
+incflo.initial_iterations = 0
 transport.viscosity = 0.1
 transport.laminar_prandtl = 1e10
 transport.turbulent_prandtl = 1e10
@@ -73,18 +74,23 @@ zlo.velocity = 0.0 0.0 0.0     # for Dirichlet BC
 #zlo.temperature_type = "fixed_gradient"
 #zlo.temperature = 0.0
 
-xlo.type = "mass_inflow"
-xlo.density = 1.0
-xlo.temperature = 0.0
-xhi.type = "pressure_outflow"
-
-ylo.type = "mass_inflow"
-ylo.density = 1.0
-ylo.temperature = 0.0
-yhi.type = "pressure_outflow"
-
 zhi.type =   "slip_wall"
-#zhi.velocity = 10.0 0.0 0.0     # for Dirichlet BC
 zhi.temperature_type = "fixed_gradient"
 zhi.temperature = 0.0
+
+xlo.type = "mass_inflow_outflow"
+xlo.density = 1.0
+xlo.temperature = 0.0
+
+xhi.type = "mass_inflow_outflow"
+xhi.density = 1.0
+xhi.temperature = 0.0
+
+ylo.type = "mass_inflow_outflow"
+ylo.density = 1.0
+ylo.temperature = 0.0
+
+yhi.type = "mass_inflow_outflow"
+yhi.density = 1.0
+yhi.temperature = 0.0
 

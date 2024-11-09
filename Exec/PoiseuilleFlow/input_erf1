@@ -12,7 +12,7 @@ erf1.zhi.type = "SlipWall"
 
 # TIME STEP CONTROL
 # erf1.use_native_mri    = 1
-erf1.no_substepping     = 1
+erf1.substepping_type = None
 erf1.fixed_dt          = 0.02  # fixed time step depending on grid resolution
 
 # DIAGNOSTICS & VERBOSITY

@@ -18,8 +18,8 @@ void fill_old_bndry(amrex::Vector<amrex::BndryRegister*>& bndry,
 
         amrex::Print() << "COPY OLD ERF DATA TO BNDRY1 ... " << std::endl;
 #if 0
-        if (field.bc_type()[ori] == BC::mass_inflow and time >= 0.0)
-        {
+        if (((field.bc_type()[ori] == BC::mass_inflow) || (field.bc_type()[ori] == BC::mass_inflow_outflow))
+            && time >= 0.0) {
           if (field.name() == "temperature") {
             mbc->CopyERFtoAMRWindBoundaryReg(*bndry[1], ori, m_in_times[0], field.name());
           } else if (field.name() == "velocity") {
@@ -120,16 +120,21 @@ void read_erf(const amrex::Real time,
             {
               auto ori = oit();
 
-              if (field.bc_type()[ori] == BC::mass_inflow and time >= 0.0) {
-                  if (field.name() == "temperature") {
-                    mbc->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
-                    mbc->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
-                  } else if (field.name() == "velocity") {
-                    mbc->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
-                    mbc->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
-                  }
+              if ((!m_in_data.is_populated(ori)) ||
+                  ((field.bc_type()[ori] != BC::mass_inflow) &&
+                   (field.bc_type()[ori] != BC::mass_inflow_outflow))) {
+                continue;
+              }
+              if (time >= 0.0) {
+                if (field.name() == "temperature") {
+                  mbc->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
+                  mbc->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
+                } else if (field.name() == "velocity") {
+                  mbc->CopyERFtoAMRWindBoundaryReg(bndry1, ori, m_in_times[0], field.name());
+                  mbc->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
                 }
-                m_in_data.read_data_native(oit, bndry1, bndry2, lev, fld, time, m_in_times, true);
+              }
+              m_in_data.read_data_native(oit, bndry1, bndry2, lev, fld, time, m_in_times, true);
             } // oit
         } // fields
 
@@ -158,9 +163,6 @@ void read_erf(const amrex::Real time,
 
         const int lev = 0;
 
-        // FIXME FIXME TODO DELETE
-        mbc->SetBoxLists();
-
         int which = 0;
 
         for (auto* fld : m_fields)
@@ -169,9 +171,15 @@ void read_erf(const amrex::Real time,
 
             for (amrex::OrientationIter oit; oit != nullptr; ++oit)
             {
-                auto ori = oit();
+              auto ori = oit();
 
-                m_in_data.read_data_native(oit, *(mbc->bndry1[which]), *(mbc->bndry2[which]), lev, fld, time, m_in_times, true);
+              if ((!m_in_data.is_populated(ori)) ||
+                  ((field.bc_type()[ori] != BC::mass_inflow) &&
+                   (field.bc_type()[ori] != BC::mass_inflow_outflow))) {
+                continue;
+              }
+
+              m_in_data.read_data_native(oit, *(mbc->bndry1[which]), *(mbc->bndry2[which]), lev, fld, time, m_in_times, true);
 
             } // ori
 

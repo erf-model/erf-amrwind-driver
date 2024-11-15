@@ -146,8 +146,9 @@ MultiBlockContainer::SetBoxLists()
       amrex::Print() << "Ori: " << ori << " A-W BNDRY in ERF Coords: " << ebx << std::endl;
 
       // Do some error checking to ensure that the AMR-Wind is fully within the ERF domain (not touching any boundaries)
-      // Note: in theory this error check could trip for a non-bopundary plane mass_inflow in AMR-Wind
-      bool need_bndry = amrwind.repo().get_field("velocity").bc_type()[ori] == BC::mass_inflow;
+      // Note: in theory this error check could trip for a non-boundary plane mass_inflow in AMR-Wind
+      auto bctype = amrwind.repo().get_field("velocity").bc_type()[ori];
+      bool need_bndry = (bctype == BC::mass_inflow) || (bctype == BC::mass_inflow_outflow);
       if ( !(erf1.domain_p[0].contains(ebx)) and need_bndry ) {
         amrex::Print() << "ERF domain must fully contain the AMR-Wind boundary planes, does not in direction "
                        << ori.coordDir() << " on face " << ori.faceDir() << std::endl;

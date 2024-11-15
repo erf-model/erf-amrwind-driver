@@ -91,15 +91,21 @@ zhi.velocity = 10.0 0.0 0.0     # for Dirichlet BC
 zhi.temperature_type = "fixed_gradient"
 zhi.temperature = 0.0
 
-xlo.type = "mass_inflow"
+xlo.type = "mass_inflow_outflow"
 xlo.density = 1.161440171 #1.0
 xlo.temperature = 0.0
-xhi.type = "pressure_outflow"
 
-ylo.type = "mass_inflow"
+xhi.type = "mass_inflow_outflow"
+xhi.density = 1.161440171 #1.0
+xhi.temperature = 0.0
+
+ylo.type = "mass_inflow_outflow"
 ylo.density = 1.161440171 #1.0
 ylo.temperature = 0.0
-yhi.type = "pressure_outflow"
+
+yhi.type = "mass_inflow_outflow"
+yhi.density = 1.161440171 #1.0
+yhi.temperature = 0.0
 
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨#
 #              VERBOSITY                #

@@ -16,14 +16,13 @@ incflo.initial_iterations = 0
 transport.viscosity = 0.1
 transport.laminar_prandtl = 1e10
 transport.turbulent_prandtl = 1e10
+velocity_diffusion.use_tensor_operator = false
 
 incflo.physics = ABL
 # ICNS.source_terms = CoriolisForcing GeostrophicForcing
 # adding pressure gradient
 ICNS.source_terms = BodyForce
 BodyForce.magnitude = 0.2 0 0
-
-BoussinesqBuoyancy.reference_temperature = 300.0
 
 incflo.velocity = 1.0 0.0 0.0
 
@@ -35,9 +34,6 @@ ABL.bottom_velocity = 0.0 0.0 0.0
 ABL.reference_temperature = 300.0
 ABL.use_bubble = 0                  ## turning off bubble
 ABL.stats_output_frequency = 10000000
-ABL.bubble_temp_ratio = 1.05
-ABL.bubble_loc = 500 750 500
-ABL.bubble_radius = 125
 ABL.temperature_heights = 0.0 2000.0
 ABL.temperature_values = 300.0 300.0
 ABL.perturb_temperature = false
@@ -49,10 +45,10 @@ ABL.Vperiods = 4.0
 ABL.deltaU = 1.0
 ABL.deltaV = 1.0
 ABL.kappa = .41
-ABL.surface_roughness_z0 = 1e-12
+ABL.surface_roughness_z0 = 0.0
 ABL.bndry_file = "/Users/mhdave/erf-amrwind-driver/Exec/PoiseuilleFlow/BndryFiles"
 ABL.bndry_io_mode = 1
-ABL.bndry_planes = ylo xlo
+ABL.bndry_planes = ylo xlo yhi xhi
 ABL.bndry_output_start_time = 0.0
 ABL.bndry_var_names = velocity #temperature
 ABL.bndry_output_format = erf-multiblock
@@ -65,7 +61,6 @@ amr.max_level           = 0           # Max AMR level in hierarchy
 geometry.prob_lo        =   0.5  0.5  0.  # Lo corner coordinates
 geometry.prob_hi        =   2.5  2.5  1.  # Hi corner coordinates
 geometry.is_periodic    =   0   0   0   # Periodicity x y z (0/1)
-# incflo.delp             =   -0.2  0.  0.  # Prescribed (cyclic) pressure gradient
 
 # Boundary conditions
 #  zlo.type =   "wall_model"

@@ -52,6 +52,9 @@ void
 MultiBlockContainer::InitializeBlocks()
 {
     amrex::Print() << "    STARTING INITIALIZATION : \n";
+    amrex::ParmParse pp("mbc");
+    pp.query("erf_to_amrwind_dl_ratio", erf_to_aw_dl_ratio);
+    amrex::Print() << "dl_ratio: " << erf_to_aw_dl_ratio << std::endl;
 
     amrex::Print() << "===================================="  << "\n";
     amrex::Print() << "         ERF1 INITIALIZATION        "  << "\n";
@@ -97,7 +100,6 @@ MultiBlockContainer::InitializeBlocks()
 
     SetBoxLists();
     SetBlockCommMetaData();
-    amrex::ParmParse pp("mbc");
     do_two_way_coupling = false;
     two_way_coupling_frequency = 1;
     pp.query("do_two_way_coupling", do_two_way_coupling);
@@ -123,6 +125,9 @@ MultiBlockContainer::SetBoxLists()
 
     // when copying from erf to amr-wind, we only copy data at the boundaries of the amr-wind domain
     bool ok_to_continue = true;
+    const amrex::Box erf_refined_box{amrex::refine(erf1.domain_p[0], erf_to_aw_dl_ratio)};
+    amrex::Print() << "ERF refined domain: " << erf_refined_box << std::endl;
+
     for (amrex::OrientationIter oit; oit != nullptr; ++oit) {
       auto ori = oit();
       amrex::IntVect sev = awbox.smallEnd();
@@ -149,7 +154,7 @@ MultiBlockContainer::SetBoxLists()
       // Note: in theory this error check could trip for a non-boundary plane mass_inflow in AMR-Wind
       auto bctype = amrwind.repo().get_field("velocity").bc_type()[ori];
       bool need_bndry = (bctype == BC::mass_inflow) || (bctype == BC::mass_inflow_outflow);
-      if ( !(erf1.domain_p[0].contains(ebx)) and need_bndry ) {
+      if ( !(erf_refined_box.contains(ebx)) and need_bndry ) {
         amrex::Print() << "ERF domain must fully contain the AMR-Wind boundary planes, does not in direction "
                        << ori.coordDir() << " on face " << ori.faceDir() << std::endl;
         ok_to_continue = false;

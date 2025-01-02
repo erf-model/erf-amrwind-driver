@@ -104,7 +104,13 @@ MultiBlockContainer::InitializeBlocks()
     two_way_coupling_frequency = 1;
     pp.query("do_two_way_coupling", do_two_way_coupling);
     pp.query("two_way_coupling_frequency", two_way_coupling_frequency);
-    FillPatchBlocksAE();
+    if (do_two_way_coupling) {
+      amrex::Print() << '\n';
+      amrex::Print() << "------------------------------------"  << "\n";
+      amrex::Print() << "           FILLPATCH A->E           "  << "\n";
+      amrex::Print() << "------------------------------------"  << "\n";
+      FillPatchBlocksAE ();
+    }
     amrex::Print() << "------------------------------------"  << "\n";
     amrex::Print() << '\n';
 }
@@ -125,8 +131,8 @@ MultiBlockContainer::SetBoxLists()
 
     // when copying from erf to amr-wind, we only copy data at the boundaries of the amr-wind domain
     bool ok_to_continue = true;
-    const amrex::Box erf_refined_box{amrex::refine(erf1.domain_p[0], erf_to_aw_dl_ratio)};
-    amrex::Print() << "ERF refined domain: " << erf_refined_box << std::endl;
+    const amrex::Box erf_refined_domain{amrex::refine(erf1.domain_p[0], erf_to_aw_dl_ratio)};
+    amrex::Print() << "ERF refined domain: " << erf_refined_domain << std::endl;
 
     for (amrex::OrientationIter oit; oit != nullptr; ++oit) {
       auto ori = oit();
@@ -154,7 +160,7 @@ MultiBlockContainer::SetBoxLists()
       // Note: in theory this error check could trip for a non-boundary plane mass_inflow in AMR-Wind
       auto bctype = amrwind.repo().get_field("velocity").bc_type()[ori];
       bool need_bndry = (bctype == BC::mass_inflow) || (bctype == BC::mass_inflow_outflow);
-      if ( !(erf_refined_box.contains(ebx)) and need_bndry ) {
+      if ( !(erf_refined_domain.contains(ebx)) and need_bndry ) {
         amrex::Print() << "ERF domain must fully contain the AMR-Wind boundary planes, does not in direction "
                        << ori.coordDir() << " on face " << ori.faceDir() << std::endl;
         ok_to_continue = false;
@@ -283,7 +289,7 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
   const amrex::BoxArray& old_ba = erf_data[Vars::cons].boxArray();
   const amrex::DistributionMapping& old_dm = erf_data[Vars::cons].DistributionMap();
   for (int i = 0; i < old_ba.size(); i++) {
-    amrex::Box isect = old_ba[i] & eboxvec_afrome[ori];
+    amrex::Box isect = refine(old_ba[i], erf_to_aw_dl_ratio) & eboxvec_afrome[ori];
     if (isect.ok()) {
       new_bl.push_back(isect);
       new_dl.push_back(old_dm[i]);
@@ -303,9 +309,10 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
       for ( amrex::MFIter mfi(newmf,amrex::TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const amrex::Array4<const amrex::Real> erf_arr = erf_data[Vars::cons].const_array(mfmap[mfi.index()]);
         const amrex::Array4<      amrex::Real> erf_arr_copy = newmf.array(mfi);
+        int r{erf_to_aw_dl_ratio};
         amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
-          erf_arr_copy(i,j,k) = erf_arr(i,j,k,RhoScalar_comp) / erf_arr(i,j,k,Rho_comp);
+          erf_arr_copy(i,j,k) = erf_arr(i/r,j/r,k/r,RhoScalar_comp) / erf_arr(i/r,j/r,k/r,Rho_comp);
         });
       }
     }
@@ -329,12 +336,37 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
                                                                   erf_data[Vars::yvel].const_array(mfmap[mfi.index()]),
                                                                   erf_data[Vars::zvel].const_array(mfmap[mfi.index()]) };
 
-        const amrex::Array4<      amrex::Real> erf_arr_copy = newmf.array(mfi);
+        const amrex::Array4<amrex::Real> erf_arr_copy = newmf.array(mfi);
         const int ndir  = ori.coordDir(); // Normal Dir
         const int nface_idx = ori.isLow() ? eboxvec_afrome[ori].smallEnd(ndir) : eboxvec_afrome[ori].bigEnd(ndir);
         const int tdir1 = (ndir + 1) % 3; // First tangenential dir
-        const int tdir2 = (ndir + 2) % 3; // second tangential di
+        const int tdir2 = (ndir + 2) % 3; // second tangential dir
 
+        int r{erf_to_aw_dl_ratio};
+        amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          amrex::IntVect idx {i,j,k};
+
+          // idx_c are the coarse indices mapped from the refined idx
+          amrex::IntVect idx_c{idx};
+          idx_c[tdir1] = idx[tdir1] / r;
+          idx_c[tdir2] = idx[tdir2] / r;
+          idx_c[ndir] = idx[ndir] / r;
+          // interpolate tangential velocity faces to center
+          amrex::IntVect idx_tp1{idx_c};
+          idx_tp1[tdir1] += 1;
+          erf_arr_copy(idx,tdir1) = 0.5*(erf_vel_arr[tdir1](idx_c) + erf_vel_arr[tdir1](idx_tp1));
+          idx_tp1 = idx_c;
+          idx_tp1[tdir2] += 1;
+          erf_arr_copy(idx,tdir2) = 0.5*(erf_vel_arr[tdir2](idx_c) + erf_vel_arr[tdir2](idx_tp1));
+
+          // take normal velocity from face
+          idx_c[ndir] = (idx[ndir] + 1) / r;
+          // idx_n[ndir] = nface_idx; // earlier solution
+          erf_arr_copy(idx,ndir) = erf_vel_arr[ndir](idx_c);
+        });
+
+        /*
         amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
           amrex::IntVect idx {i,j,k};
@@ -354,6 +386,7 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
           //  std::cout << i << " " << j << " " << k << " | " << idx << " n " << idx_n << " | " << erf_vel_arr[ndir](idx_n) << std::endl;
           //}
         });
+        */
       }
     }
     // receive_br[ori].setVal(10.0,0,1);

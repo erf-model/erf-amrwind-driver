@@ -5,7 +5,7 @@
 
 #include "AMReX_REAL.H"
 
-#include "ERF_prob_common.H"
+#include "ERF_ProbCommon.H"
 
 struct ProbParm : ProbParmDefaults {
   bool use_bubble = 0;
@@ -53,8 +53,8 @@ class Problem : public ProblemBase
 public:
     Problem(const amrex::Real* problo, const amrex::Real* probhi);
 
-#include "ERF_init_constant_density_hse.H"
-#include "ERF_init_rayleigh_damping.H"
+#include "ERF_InitConstantDensityHSE.H"
+#include "ERF_InitRayleighDamping.H"
 
     void init_custom_pert (
         const amrex::Box&  bx,

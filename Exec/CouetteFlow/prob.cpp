@@ -106,7 +106,7 @@ Problem::init_custom_pert(
     const amrex::Real bcx = parms.bubble_loc_x;
     const amrex::Real bcy = parms.bubble_loc_y;
     const amrex::Real bcz = parms.bubble_loc_z;
-    if (parms.use_bubble and geomdata.Domain().bigEnd(0) > 60) {
+    if (parms.use_bubble) {
       amrex::Real radius = std::sqrt((x-bcx)*(x-bcx) + (y-bcy)*(y-bcy) + (z-bcz)*(z-bcz));
       ratio = 1.0 + (parms.bubble_temp_ratio - 1.0) * exp(-0.5 * radius* radius / (parms.bubble_radius * parms.bubble_radius));
       state_pert(i, j, k, RhoScalar_comp) = 300.0 * ratio * parms.rho_0;

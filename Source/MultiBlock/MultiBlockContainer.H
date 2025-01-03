@@ -65,6 +65,8 @@ private:
     amrex::Box ebox_efroma;
     amrex::Box abox_efroma;
   //std::vector<std::vector<amrex::NonLocalBC::MultiBlockCommMetaData*>> cmd_afrome;
+
+  int erf_to_aw_dl_ratio{1};
 };
 
 #endif

@@ -8,6 +8,7 @@ FILE = input_amrwind
 max_step  = 150
 stop_time = 600
 
+mbc.erf_to_amrwind_dl_ratio = 2
 mbc.do_two_way_coupling = false
 
 # VERBOSITY

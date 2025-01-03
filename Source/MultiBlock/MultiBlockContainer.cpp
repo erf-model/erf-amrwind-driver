@@ -365,28 +365,6 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
           // idx_n[ndir] = nface_idx; // earlier solution
           erf_arr_copy(idx,ndir) = erf_vel_arr[ndir](idx_c);
         });
-
-        /*
-        amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-        {
-          amrex::IntVect idx {i,j,k};
-
-          // interpolate tangential velocity faces to center
-          amrex::IntVect idx_t1{idx}; idx_t1[tdir1] += 1;
-          amrex::IntVect idx_t2{idx}; idx_t2[tdir2] += 1;
-          erf_arr_copy(idx,tdir1) = 0.5*(erf_vel_arr[tdir1](idx) + erf_vel_arr[tdir1](idx_t1));
-          erf_arr_copy(idx,tdir2) = 0.5*(erf_vel_arr[tdir2](idx) + erf_vel_arr[tdir2](idx_t2));
-
-          // take normal velocity from face
-          amrex::IntVect idx_n{idx}; idx_n[ndir] = nface_idx;
-          erf_arr_copy(idx,ndir) = erf_vel_arr[ndir](idx_n);
-
-          // TODO : issue when y boundary in amr-wind is pressure outflow
-          //if (ori.coordDir() == 0 and k < 2) {
-          //  std::cout << i << " " << j << " " << k << " | " << idx << " n " << idx_n << " | " << erf_vel_arr[ndir](idx_n) << std::endl;
-          //}
-        });
-        */
       }
     }
     // receive_br[ori].setVal(10.0,0,1);

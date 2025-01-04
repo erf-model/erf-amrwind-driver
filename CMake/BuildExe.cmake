@@ -526,10 +526,6 @@ function(build_erf_exe erf_exe_name)
   include(${CMAKE_SOURCE_DIR}/CMake/SetERFCompileFlags.cmake)
   set_erf_compile_flags(${erf_exe_name})
 
-  target_sources(${erf_exe_name} PRIVATE
-                ${ERF_SRC_DIR}/Initialization/ERF_init_bcs.cpp
-                )
-
   if(ERF_ENABLE_CUDA)
     set(pctargets "${erf_exe_name}")
     foreach(tgt IN LISTS pctargets)

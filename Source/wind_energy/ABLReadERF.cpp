@@ -134,7 +134,7 @@ void read_erf(const amrex::Real time,
                   mbc->CopyERFtoAMRWindBoundaryReg(bndry2, ori, m_in_times[1], field.name());
                 }
               }
-              m_in_data.read_data_native(oit, bndry1, bndry2, lev, fld, time, m_in_times, true);
+              m_in_data.read_data_native(oit, bndry1, bndry2, lev, fld, time, m_in_times);
             } // oit
         } // fields
 
@@ -179,7 +179,7 @@ void read_erf(const amrex::Real time,
                 continue;
               }
 
-              m_in_data.read_data_native(oit, *(mbc->bndry1[which]), *(mbc->bndry2[which]), lev, fld, time, m_in_times, true);
+              m_in_data.read_data_native(oit, *(mbc->bndry1[which]), *(mbc->bndry2[which]), lev, fld, time, m_in_times);
 
             } // ori
 

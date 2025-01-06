@@ -11,9 +11,7 @@ include(CMakePackageConfigHelpers)
 set(ERF_HOME "${CMAKE_SOURCE_DIR}/../ERF" CACHE STRING "Path to ERF root directory")
 set(AMRWIND_HOME "${CMAKE_SOURCE_DIR}/../amr-wind" CACHE STRING "Path to AMR-Wind root directory")
 set(ERF_DIM "3" CACHE STRING "Number of physical dimensions")
-option(ERF_ENABLE_DOCUMENTATION "Build documentation" OFF)
 option(ERF_ENABLE_ALL_WARNINGS "Enable all compiler warnings" OFF)
-option(ERF_ENABLE_TESTS "Enable regression and unit tests" OFF)
 option(ERF_ENABLE_NETCDF "Enable NetCDF IO" OFF)
 option(ERF_ENABLE_HDF5 "Enable HDF5 IO" ${ERF_ENABLE_NETCDF})
 option(ERF_ENABLE_FCOMPARE "Enable building fcompare when not testing" OFF)
@@ -22,7 +20,6 @@ set(ERF_PRECISION "DOUBLE" CACHE STRING "Floating point precision SINGLE or DOUB
 option(ERF_ENABLE_MOISTURE "Enable Full Moisture" OFF)
 option(ERF_ENABLE_WARM_NO_PRECIP "Enable Warm Moisture" OFF)
 option(ERF_ENABLE_RRTMGP "Enable RTE-RRTMGP Radiation" OFF)
-option(ERF_ENABLE_MULTIBLOCK "Enable MutliBlock code" ON)
 
 #Options for performance
 option(ERF_ENABLE_MPI "Enable MPI" OFF)
@@ -171,12 +168,3 @@ include(${CMAKE_SOURCE_DIR}/CMake/SetRpath.cmake)
 
 #Build erf executables and intermediate object library and link to amrex library
 add_subdirectory(Exec)
-
-if(ERF_ENABLE_TESTS)
-  include(CTest)
-  add_subdirectory(Tests)
-endif()
-
-if(ERF_ENABLE_DOCUMENTATION)
-   add_subdirectory(Docs)
-endif()

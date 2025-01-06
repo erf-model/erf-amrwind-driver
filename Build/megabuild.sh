@@ -2,16 +2,16 @@
 
 #set -o errexit
 
-#mkdir driver-build
-#cd driver-build
 export TOP=$(pwd)
 export TOP_MOD=$(pwd)/erf-amrwind-driver/Submodules
 
 export CXXFLAGS=-fPIC
 
+### Init and update submodules
 cd ${TOP}/erf-amrwind-driver
 git submodule update --init --depth=1
 
+### Build AMReX
 cd ${TOP_MOD}/amrex
 cmake -DBUILD_SHARED_LIBS=OFF \
       -DAMReX_EB=OFF -DAMReX_PIC=YES \
@@ -21,6 +21,7 @@ cd ${TOP}/amrex-build
 make -j16
 make install
 
+### Build AMReX-Hydro
 cd ${TOP_MOD}/AMReX-Hydro
 cmake -DBUILD_SHARED_LIBS=OFF \
       -DAMReX_EB=OFF -DHYDRO_EB=OFF \
@@ -32,6 +33,7 @@ cd ${TOP}/AMReX-Hydro-build
 make -j16
 make install
 
+### Build ERF
 cmake -DBUILD_SHARED_LIBS=OFF \
       -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/ERF-install \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \
@@ -52,6 +54,7 @@ cd ${TOP}/ERF-build
 make -j16
 make install
 
+### Build AMR-Wind
 cd ${TOP_MOD}/amr-wind
 cmake -DBUILD_SHARED_LIBS=ON \
       -B ${TOP}/amr-wind-build \
@@ -67,6 +70,7 @@ cd ${TOP}/amr-wind-build
 make -j16
 make install
 
+### Build the coupling driver
 cd ${TOP}
 cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \
@@ -83,8 +87,6 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
       -DERF_ENABLE_MULTIBLOCK:BOOL=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro;${TOP}/amr-wind-install/lib/cmake/AMR-Wind;${TOP}/ERF-install/lib/cmake/ERF" \
-      -DDRIVER_USE_INTERNAL_AMRWIND:BOOL=OFF \
-      -DDRIVER_USE_INTERNAL_ERF:BOOL=OFF \
       -DERF_USE_INTERNAL_AMREX:BOOL=OFF \
       -DAMR_WIND_USE_INTERNAL_AMREX=OFF -DAMR_WIND_USE_INTERNAL_AMREX_HYDRO=OFF \
       -S ${TOP}/erf-amrwind-driver -B ${TOP}/erf-amrwind-driver-build

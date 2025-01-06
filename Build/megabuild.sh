@@ -40,7 +40,6 @@ cmake -DBUILD_SHARED_LIBS=OFF \
       -DCMAKE_C_COMPILER:STRING=mpicc \
       -DCMAKE_Fortran_COMPILER:STRING=mpifort \
       -DCMAKE_BUILD_TYPE:STRING=Release \
-      -DERF_DIM:STRING=3 \
       -DERF_ENABLE_MPI:BOOL=ON \
       -DERF_ENABLE_MULTIBLOCK:BOOL=ON \
       -DERF_USE_INTERNAL_AMREX:BOOL=OFF \
@@ -79,9 +78,7 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DAMRWIND_HOME:STRING=${TOP_MOD}/amr-wind \
       -DERF_HOME:STRING=${TOP_MOD}/ERF \
-      -DERF_DIM:STRING=3 \
       -DERF_ENABLE_MPI:BOOL=ON \
-      -DERF_ENABLE_FCOMPARE:BOOL=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro;${TOP}/amr-wind-install/lib/cmake/AMR-Wind;${TOP}/ERF-install/lib/cmake/ERF" \
       -S ${TOP}/erf-amrwind-driver -B ${TOP}/erf-amrwind-driver-build

@@ -87,8 +87,6 @@ cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
       -DERF_ENABLE_MULTIBLOCK:BOOL=ON \
       -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro;${TOP}/amr-wind-install/lib/cmake/AMR-Wind;${TOP}/ERF-install/lib/cmake/ERF" \
-      -DERF_USE_INTERNAL_AMREX:BOOL=OFF \
-      -DAMR_WIND_USE_INTERNAL_AMREX=OFF -DAMR_WIND_USE_INTERNAL_AMREX_HYDRO=OFF \
       -S ${TOP}/erf-amrwind-driver -B ${TOP}/erf-amrwind-driver-build
 cd ${TOP}/erf-amrwind-driver-build
 make -j16

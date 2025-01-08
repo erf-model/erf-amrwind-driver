@@ -6,280 +6,244 @@
 using namespace amrex;
 
 // Vector input constructor
-MultiBlockContainer::MultiBlockContainer(const std::vector<amrex::RealBox>& rb_v,
-                                         std::vector<int> max_level_in_v,
-                                         const std::vector<amrex::Vector<int>>& n_cell_in_v,
-                                         std::vector<int> coord_v,
-                                         const std::vector<amrex::Vector<amrex::IntVect>>& ref_ratios_v,
-                                         const std::vector<amrex::Array<int,AMREX_SPACEDIM>>& is_per_v,
-                                         std::vector<std::string> prefix_v,
-                                         int max_step)
-: m_max_step(max_step),
-  erf1(rb_v[0],max_level_in_v[0],n_cell_in_v[0],coord_v[0],ref_ratios_v[0],is_per_v[0],prefix_v[0])
+MultiBlockContainer::MultiBlockContainer (
+  const std::vector<amrex::RealBox>& rb_v,
+  std::vector<int> max_level_in_v,
+  const std::vector<amrex::Vector<int>>& n_cell_in_v,
+  std::vector<int> coord_v,
+  const std::vector<amrex::Vector<amrex::IntVect>>& ref_ratios_v,
+  const std::vector<amrex::Array<int,AMREX_SPACEDIM>>& is_per_v,
+  std::vector<std::string> prefix_v,
+  int max_step)
+: erf1(rb_v[0],max_level_in_v[0],n_cell_in_v[0],coord_v[0],ref_ratios_v[0],is_per_v[0],prefix_v[0]),
+  m_max_step(max_step)
 {
-    // Store ptr to container to call member functions
-    amrwind.SetMultiBlockPointer(this);
-    amrwind.set_read_erf(read_erf);
-    erf1.SetMultiBlockPointer(this);
+  // Store ptr to container to call member functions
+  amrwind.SetMultiBlockPointer(this);
+  amrwind.set_read_erf(read_erf);
+  erf1.SetMultiBlockPointer(this);
 
-    // Set the permutation/sign of dtos
-    dtos_efroma.permutation = amrex::IntVect{AMREX_D_DECL(   0,   1,   2)};
-    dtos_efroma.sign        = amrex::IntVect{AMREX_D_DECL(   1,   1,   1)};
-    dtos_afrome.permutation = amrex::IntVect{AMREX_D_DECL(   0,   1,   2)};
-    dtos_afrome.sign        = amrex::IntVect{AMREX_D_DECL(   1,   1,   1)};
+  // Set the permutation/sign of dtos
+  dtos_efroma.permutation = amrex::IntVect{AMREX_D_DECL(   0,   1,   2)};
+  dtos_efroma.sign        = amrex::IntVect{AMREX_D_DECL(   1,   1,   1)};
+  dtos_afrome.permutation = amrex::IntVect{AMREX_D_DECL(   0,   1,   2)};
+  dtos_afrome.sign        = amrex::IntVect{AMREX_D_DECL(   1,   1,   1)};
 
-    // Set offset of dtos (NOTE: i_dst =  i_src - i_off -> [0] - [1])
-    {
-      const amrex::Geometry geom = amrwind.repo().mesh().Geom(0);
-      amrex::Real dx = geom.CellSize(0);
-      amrex::Real dy = geom.CellSize(1);
-      amrex::Real dz = geom.CellSize(2);
-      int offx = amrex::Math::floor((geom.ProbLo(0) - rb_v[0].lo(0)) / dx);
-      int offy = amrex::Math::floor((geom.ProbLo(1) - rb_v[0].lo(1)) / dy);
-      int offz = amrex::Math::floor((geom.ProbLo(2) - rb_v[0].lo(2)) / dz);
-      dtos_efroma.offset = amrex::IntVect{AMREX_D_DECL(offx, offy, offz)};
-      dtos_afrome.offset = amrex::IntVect{AMREX_D_DECL(-offx, -offy, -offz)};
-    }
+  // Set offset of dtos (NOTE: i_dst =  i_src - i_off -> [0] - [1])
+  {
+    const amrex::Geometry geom = amrwind.repo().mesh().Geom(0);
+    amrex::Real dx = geom.CellSize(0);
+    amrex::Real dy = geom.CellSize(1);
+    amrex::Real dz = geom.CellSize(2);
+    int offx = static_cast<int>(amrex::Math::floor((geom.ProbLo(0) - rb_v[0].lo(0)) / dx));
+    int offy = static_cast<int>(amrex::Math::floor((geom.ProbLo(1) - rb_v[0].lo(1)) / dy));
+    int offz = static_cast<int>(amrex::Math::floor((geom.ProbLo(2) - rb_v[0].lo(2)) / dz));
+    dtos_efroma.offset = amrex::IntVect{AMREX_D_DECL(offx, offy, offz)};
+    dtos_afrome.offset = amrex::IntVect{AMREX_D_DECL(-offx, -offy, -offz)};
+  }
 }
 
 // Destructor
-MultiBlockContainer::~MultiBlockContainer()
+MultiBlockContainer::~MultiBlockContainer ()
 {
 }
 
 // Initialize block data
 void
-MultiBlockContainer::InitializeBlocks()
+MultiBlockContainer::InitializeBlocks ()
 {
-    amrex::Print() << "    STARTING INITIALIZATION : \n";
-    amrex::ParmParse pp("mbc");
-    pp.query("erf_to_amrwind_dl_ratio", erf_to_aw_dl_ratio);
-    amrex::Print() << "dl_ratio: " << erf_to_aw_dl_ratio << std::endl;
+  amrex::Print() << "======== MultiBlock Intitialization I ========"  << "\n";
+  amrex::ParmParse pp("mbc");
+  pp.query("erf_to_amrwind_dl_ratio", erf_to_aw_dl_ratio);
+  pp.query("do_two_way_coupling", do_two_way_coupling);
+  pp.query("two_way_coupling_frequency", two_way_coupling_frequency);
+  SetBoxLists();
 
-    amrex::Print() << "===================================="  << "\n";
-    amrex::Print() << "         ERF1 INITIALIZATION        "  << "\n";
-    amrex::Print() << "------------------------------------"  << "\n";
-    erf1.InitData();
+  amrex::Print() << "======== ERF1 INITIALIZATION ========"  << "\n";
+  erf1.InitData();
 
-    amrex::Print() << '\n';
-    amrex::Print() << "------------------------------------"  << "\n";
-    amrex::Print() << "       AMRWIND INITIALIZATION       "  << "\n";
-    amrex::Print() << "------------------------------------"  << "\n";
+  amrex::Print() << "======== AMRWIND INITIALIZATION ========"  << "\n";
+  amrwind.InitData();
 
-    amrwind.InitData();
+  amrex::BoxArray ba(amrwind.boxArray(0));
+  amrex::DistributionMapping dm{ba};
 
-    amrex::BoxArray ba(amrwind.boxArray(0));
-    amrex::DistributionMapping dm{ba};
+  // Allocate boundary registers for AMR-Wind
+  // Only two fields supported for now -- velocity and temperature
+  int num_fields = 2;
+  bndry1.resize(num_fields);
+  bndry2.resize(num_fields) ;
 
-    const int in_rad = 1;
-    const int out_rad = 1;
-    const int extent_rad = 0;
+  const int in_rad = 1;
+  const int out_rad = 1;
+  const int extent_rad = 0;
 
-    // HACK HACK HACK -- velocity and temperature
-    int num_fields = 2;
+  // for (i = 0; i < nfields; i++)
+  // TODO: COULD THIS BE LOOP OVER NFIELDS?
+  {
+    // Velocity
+    bndry1[0] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 3);
+    bndry2[0] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 3);
 
-    bndry1.resize(num_fields);
-    bndry2.resize(num_fields) ;
+    // Temperature
+    bndry1[1] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 1);
+    bndry2[1] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 1);
+  }
 
-    // for (i = 0; i < nfields; i++)
-    // TODO: THIS SHOULD BE LOOP OVER NFIELDS
-    {
-        // Velocity
-        bndry1[0] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 3);
-        bndry2[0] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 3);
+  amrex::Print() << "======== MultiBlock Intitialization II ========"  << "\n";
+  SetBlockCommMetaData();
 
-        // Temperature
-        bndry1[1] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 1);
-        bndry2[1] = new BndryRegister(ba, dm, in_rad, out_rad, extent_rad, 1);
-    }
-
-    amrex::Print() << '\n';
-    amrex::Print() << "------------------------------------"  << "\n";
-    amrex::Print() << "     MultiBlock Intitialization     "  << "\n";
-    amrex::Print() << "------------------------------------"  << "\n";
-
-    SetBoxLists();
-    SetBlockCommMetaData();
-    do_two_way_coupling = false;
-    two_way_coupling_frequency = 1;
-    pp.query("do_two_way_coupling", do_two_way_coupling);
-    pp.query("two_way_coupling_frequency", two_way_coupling_frequency);
-    if (do_two_way_coupling) {
-      amrex::Print() << '\n';
-      amrex::Print() << "------------------------------------"  << "\n";
-      amrex::Print() << "           FILLPATCH A->E           "  << "\n";
-      amrex::Print() << "------------------------------------"  << "\n";
-      FillPatchBlocksAE ();
-    }
-    amrex::Print() << "------------------------------------"  << "\n";
-    amrex::Print() << '\n';
+  if (do_two_way_coupling) {
+    amrex::Print() << "======== FILLPATCH A->E ========"  << "\n";
+    FillPatchBlocksAE ();
+  }
 }
 
 // Set up BoxList vector for use with Communication Meta Data
 void
-MultiBlockContainer::SetBoxLists()
+MultiBlockContainer::SetBoxLists ()
 {
   // when copying from amr-wind to erf, data from the entire amr-wind domain is used
-    amrex::Box awbox = amrwind.repo().mesh().Geom(0).Domain();
-    abox_efroma = amrex::Box(awbox.smallEnd(), awbox.bigEnd());
-    amrex::Dim3 se = dtos_efroma.Inverse(amrex::lbound(abox_efroma));
-    amrex::Dim3 be = dtos_efroma.Inverse(amrex::ubound(abox_efroma));
-    ebox_efroma = amrex::Box({se.x, se.y, se.z}, {be.x, be.y, be.z});
+  amrex::Box awbox = amrwind.repo().mesh().Geom(0).Domain();
+  abox_efroma = amrex::Box(awbox.smallEnd(), awbox.bigEnd());
+  amrex::Dim3 se = dtos_efroma.Inverse(amrex::lbound(abox_efroma));
+  amrex::Dim3 be = dtos_efroma.Inverse(amrex::ubound(abox_efroma));
+  ebox_efroma = amrex::Box({se.x, se.y, se.z}, {be.x, be.y, be.z});
 
-    // amrex::Print() << "A-W BOX in A-W Coords: " << abox_efroma << std::endl;
-    // amrex::Print() << "A-W BOX in ERF Coords: " << ebox_efroma << std::endl;
-
-    // when copying from erf to amr-wind, we only copy data at the boundaries of the amr-wind domain
-    bool ok_to_continue = true;
-    const amrex::Box erf_refined_domain{amrex::refine(erf1.domain_p[0], erf_to_aw_dl_ratio)};
-    amrex::Print() << "ERF refined domain: " << erf_refined_domain << std::endl;
-
-    for (amrex::OrientationIter oit; oit != nullptr; ++oit) {
-      auto ori = oit();
-      amrex::IntVect sev = awbox.smallEnd();
-      amrex::IntVect bev = awbox.bigEnd();
-      if (ori.faceDir() == 1) {
-        sev[ori.coordDir()] = bev[ori.coordDir()];
-        bev[ori.coordDir()] += 1;
-      }
-      else {
-        bev[ori.coordDir()] = sev[ori.coordDir()];
-        sev[ori.coordDir()] -= 1;
-      }
-      amrex::Box abx(sev,bev);
-      aboxvec_afrome.push_back(abx);
-      amrex::Dim3 ese = dtos_afrome(amrex::lbound(abx));
-      amrex::Dim3 ebe = dtos_afrome(amrex::ubound(abx));
-      amrex::Box ebx({ese.x, ese.y, ese.z}, {ebe.x, ebe.y, ebe.z});
-      eboxvec_afrome.push_back(ebx);
-
-      amrex::Print() << "Ori: " << ori << " A-W BNDRY in A-W Coords: " << abx << std::endl;
-      amrex::Print() << "Ori: " << ori << " A-W BNDRY in ERF Coords: " << ebx << std::endl;
-
-      // Do some error checking to ensure that the AMR-Wind is fully within the ERF domain (not touching any boundaries)
-      // Note: in theory this error check could trip for a non-boundary plane mass_inflow in AMR-Wind
-      auto bctype = amrwind.repo().get_field("velocity").bc_type()[ori];
-      bool need_bndry = (bctype == BC::mass_inflow) || (bctype == BC::mass_inflow_outflow);
-      if ( !(erf_refined_domain.contains(ebx)) and need_bndry ) {
-        amrex::Print() << "ERF domain must fully contain the AMR-Wind boundary planes, does not in direction "
-                       << ori.coordDir() << " on face " << ori.faceDir() << std::endl;
-        ok_to_continue = false;
-      }
+  // when copying from erf to amr-wind, we only copy data at the boundaries of the amr-wind domain
+  bool ok_to_continue = true;
+  // refine ERF domain for error checking later
+  const amrex::Box erf_refined_domain{amrex::refine(erf1.domain_p[0], erf_to_aw_dl_ratio)};
+  //amrex::Print() << "ERF refined domain: " << erf_refined_domain << std::endl;
+  for (amrex::OrientationIter oit; oit != nullptr; ++oit) {
+    auto ori = oit();
+    amrex::IntVect sev = awbox.smallEnd();
+    amrex::IntVect bev = awbox.bigEnd();
+    if (ori.faceDir() == 1) {
+      sev[ori.coordDir()] = bev[ori.coordDir()];
+      bev[ori.coordDir()] += 1;
     }
-    if (!ok_to_continue) amrex::Abort("Invalid domains for ERF/AMR-Wind coupling");
+    else {
+      bev[ori.coordDir()] = sev[ori.coordDir()];
+      sev[ori.coordDir()] -= 1;
+    }
+    amrex::Box abx(sev,bev);
+    aboxvec_afrome.push_back(abx);
+    amrex::Dim3 ese = dtos_afrome(amrex::lbound(abx));
+    amrex::Dim3 ebe = dtos_afrome(amrex::ubound(abx));
+    amrex::Box ebx({ese.x, ese.y, ese.z}, {ebe.x, ebe.y, ebe.z});
+    eboxvec_afrome.push_back(ebx);
 
+    //amrex::Print() << "Ori: " << ori << " A-W BNDRY in A-W Coords: " << abx << std::endl;
+    //amrex::Print() << "Ori: " << ori << " A-W BNDRY in ERF Coords: " << ebx << std::endl;
+
+    // Do some error checking to ensure that the AMR-Wind is fully within the ERF domain (not touching any boundaries)
+    // Note: in theory this error check could trip for a non-boundary plane mass_inflow in AMR-Wind
+    auto bctype = amrwind.repo().get_field("velocity").bc_type()[ori];
+    bool need_bndry = (bctype == BC::mass_inflow) || (bctype == BC::mass_inflow_outflow);
+    if ( !(erf_refined_domain.contains(ebx)) and need_bndry ) {
+      amrex::Print() << "ERF domain must fully contain the AMR-Wind boundary planes, does not in direction "
+                     << ori.coordDir() << " on face " << ori.faceDir() << std::endl;
+      ok_to_continue = false;
+    }
+  }
+  if (!ok_to_continue) amrex::Abort("Invalid domains for ERF/AMR-Wind coupling");
 }
 
 // Set up MB Communication Meta Data
 void
-MultiBlockContainer::SetBlockCommMetaData()
+MultiBlockContainer::SetBlockCommMetaData ()
 {
-    // Hard-coded bounds for now
-    int nvars  = erf1.vars_new[0].size(); // Destination MF
-    int ndirs  = AMREX_SPACEDIM;
-
-    amrex::IntVect nghost(0);
-    amrex::NonLocalBC::MultiBlockCommMetaData *cmd_efroma_tmp =
-      new amrex::NonLocalBC::MultiBlockCommMetaData(erf1.vars_new[0][Vars::cons], ebox_efroma,
-                                                    amrwind.repo().get_field("temperature")(0), nghost, dtos_efroma);
-    cmd_efroma.push_back(cmd_efroma_tmp);
+  amrex::IntVect nghost(0);
+  amrex::NonLocalBC::MultiBlockCommMetaData *cmd_efroma_tmp =
+    new amrex::NonLocalBC::MultiBlockCommMetaData(
+      erf1.vars_new[0][Vars::cons], ebox_efroma,
+      amrwind.repo().get_field("temperature")(0), nghost, dtos_efroma);
+  cmd_efroma.push_back(cmd_efroma_tmp);
 }
 
 // Advance blocks
 void
 MultiBlockContainer::AdvanceBlocks()
 {
-    amrex::Print() << "STARTING MAIN DRIVER FOR: " << m_max_step << " STEPS" << "\n";
-    amrex::Print() << "\n";
+  amrex::Print() << "======== STARTING MAIN DRIVER FOR: "
+                 << m_max_step << " STEPS" << "\n";
 
-    int aw_to_erf_dt_ratio;
-    {
-      amrex::Real erf_dt = erf1.get_dt(0);
-      amrex::Real amrwind_dt = amrwind.time().delta_t();
-      amrex::Real aw_to_erf_dt = amrwind_dt / erf_dt;
-      aw_to_erf_dt_ratio = std::round(aw_to_erf_dt);
-      amrex::Real eps = 1e-8;
-      AMREX_ALWAYS_ASSERT(std::abs(aw_to_erf_dt - aw_to_erf_dt_ratio) <= eps);
-      amrex::Print() << "ERF will make " << aw_to_erf_dt_ratio
-                     << " steps for each AMR-Wind step." << std::endl;
+  // Calculate ratio of AMR-Wind to ERF deltaT
+  // and verify that it is an integer
+  int aw_to_erf_dt_ratio;
+  {
+    amrex::Real erf_dt = erf1.get_dt(0);
+    amrex::Real amrwind_dt = amrwind.time().delta_t();
+    amrex::Real aw_to_erf_dt = amrwind_dt / erf_dt;
+    aw_to_erf_dt_ratio = static_cast<int>(std::round(aw_to_erf_dt));
+    const amrex::Real eps = 1e-8;
+    AMREX_ALWAYS_ASSERT(std::abs(aw_to_erf_dt - aw_to_erf_dt_ratio) <= eps);
+    amrex::Print() << "ERF will make " << aw_to_erf_dt_ratio
+                   << " steps for each AMR-Wind step." << std::endl;
+  }
+
+  // NOTE: step here corresponds to the number of AMR-Wind steps taken
+  for (int step(0); step < m_max_step; ++step) {
+
+    if (step == 0) {
+      fill_old_bndry(bndry1,this);
     }
 
-    //
-    // NOTE: step here corresponds to the number of AMR-Wind steps taken
-    //
-    for (int step(0); step < m_max_step; ++step) {
+    amrex::Print() << "======== ERF EVOLVE ========"  << "\n";
+    erf1.Evolve_MB(aw_to_erf_dt_ratio*step+1, aw_to_erf_dt_ratio);
 
-        if (step == 0) {
-            fill_old_bndry(bndry1,this);
-        }
+    fill_new_bndry(bndry2,this);
 
-        amrex::Print() << "    STARTING ADVANCE DRIVER: " << step+1 << "\n";
-        amrex::Print() << "===================================="  << "\n";
-        amrex::Print() << "           ERF BLOCK STARTS         "  << "\n";
-        amrex::Print() << "------------------------------------"  << "\n";
+    amrex::Print() << "======== AMRWIND EVOLVE ========"  << "\n";
+    amrwind.Evolve_MultiBlock(step+1,1);
 
-        erf1.Evolve_MB(aw_to_erf_dt_ratio*step+1,aw_to_erf_dt_ratio);
-
-        fill_new_bndry(bndry2,this);
-
-        amrex::Print() << '\n';
-        amrex::Print() << "------------------------------------"  << "\n";
-        amrex::Print() << "        AMR-WIND BLOCK STARTS       "  << "\n";
-        amrex::Print() << "------------------------------------"  << "\n";
-
-        amrwind.Evolve_MultiBlock(step+1,1);
-
-        if (do_two_way_coupling && (((step+1) % two_way_coupling_frequency) == 0)) {
-          amrex::Print() << '\n';
-          amrex::Print() << "------------------------------------"  << "\n";
-          amrex::Print() << "           FILLPATCH A->E           "  << "\n";
-          amrex::Print() << "------------------------------------"  << "\n";
-          FillPatchBlocksAE ();
-        }
-        amrex::Print() << '\n';
-        amrex::Print() << "------------------------------------"  << "\n";
-        amrex::Print() << "          COMPLETE                  "  << "\n";
-        amrex::Print() << "------------------------------------"  << "\n";
-        amrex::Print() << "\n";
-
-        // TODO: THIS SHOULD BE LOOP OVER NFIELDS
-        std::swap(bndry2[0],bndry1[0]);
-        std::swap(bndry2[1],bndry1[1]);
+    if (do_two_way_coupling && (((step+1) % two_way_coupling_frequency) == 0)) {
+      amrex::Print() << "======== FILLPATCH A->E ========"  << "\n";
+      FillPatchBlocksAE ();
     }
+    amrex::Print() << "======== DRIVER STEP COMPLETE ========"  << "\n";
+
+    // swap old and new boundary fields
+    // TODO: COULD BE LOOP OVER NFIELDS?
+    std::swap(bndry2[0],bndry1[0]); // Velocity
+    std::swap(bndry2[1],bndry1[1]); // Temperature
+  }
 }
 
-
 // Fill AMR-Wind Boundary Regsiter from ERF1
-void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& receive_br,
-                                                       amrex::Orientation ori,
-                                                       amrex::Real time,
-                                                       const std::string &field) {
+void
+MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
+  amrex::BndryRegister& receive_br,
+  amrex::Orientation ori,
+  amrex::Real time,
+  const std::string &field) {
 
   // Need a ghost cell in case AMR-Wind boundary to be filled coincides with ERF boundary
-  amrex::IntVect nghost(0);
-  // nghost[ori.coordDir()] = 1;
   // FOR NOW - don't support this, ERF must be interior of AMR-Wind
+  // nghost[ori.coordDir()] = 1;
+  amrex::IntVect nghost(0);
 
   // ERF level where we are getting the data
   const int erf_source_level = 0;
 
-  // WARNING: for this to work properly we need to make sure the new state data is FillPatched
-  //          old data is FillPatched at beginning of timestep and should be good
-  //  amrex::Vector<amrex::MultiFab>& erf_data;
   bool on_old_time{time == erf1.get_t_old(0)};
   bool on_new_time{time == erf1.get_t_new(0)};
   AMREX_ALWAYS_ASSERT(on_new_time || on_old_time);
-  amrex::Print() << " IN COPY ERF TO AWBR " << std::endl;
+  /*
+  amrex::Print() << "IN COPY ERF TO AWBR " << std::endl;
   amrex::Print() << "    TIME IS " <<  time << std::endl;
   amrex::Print() << "OLD TIME IS " <<  erf1.get_t_old(0) << std::endl;
   amrex::Print() << "NEW TIME IS " <<  erf1.get_t_new(0) << std::endl;
+  */
   if (on_old_time) {
-    amrex::Print() << std::endl << "FILLPATCHING _ " << field << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl << std::endl;
+    amrex::Print() << std::endl << "FILLPATCHING _ " << field
+                   << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl << std::endl;
   }
   else {
-    amrex::Print() << std::endl << "FILLPATCHING _ " << field << " _ FROM ERF TO AMR WIND ON _ new _ TIME, ORIENTATION " << ori << std::endl << std::endl;
+    amrex::Print() << std::endl << "FILLPATCHING _ " << field
+                   << " _ FROM ERF TO AMR WIND ON _ new _ TIME, ORIENTATION " << ori << std::endl << std::endl;
   }
-
   amrex::Vector<amrex::MultiFab>& erf_data = on_old_time ? erf1.vars_old[erf_source_level] : erf1.vars_new[erf_source_level];
 
   // For selecting only subdomain of erf domain for data processing
@@ -289,11 +253,12 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
   const amrex::BoxArray& old_ba = erf_data[Vars::cons].boxArray();
   const amrex::DistributionMapping& old_dm = erf_data[Vars::cons].DistributionMap();
   for (int i = 0; i < old_ba.size(); i++) {
+    // refine ERF boxes as newmf needs to be at the resolution of AMR-Wind
     amrex::Box isect = refine(old_ba[i], erf_to_aw_dl_ratio) & eboxvec_afrome[ori];
     if (isect.ok()) {
       new_bl.push_back(isect);
       new_dl.push_back(old_dm[i]);
-      mfmap.insert({new_dl.size()-1, i});
+      mfmap.insert({new_dl.size() - 1, i});
     }
   }
   amrex::BoxArray new_ba(new_bl);
@@ -306,7 +271,7 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
 #pragma omp parallel if (amrex::Gpu::notInLaunchRegion())
 #endif
     {
-      for ( amrex::MFIter mfi(newmf,amrex::TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      for (amrex::MFIter mfi(newmf, amrex::TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const amrex::Array4<const amrex::Real> erf_arr = erf_data[Vars::cons].const_array(mfmap[mfi.index()]);
         const amrex::Array4<      amrex::Real> erf_arr_copy = newmf.array(mfi);
         int r{erf_to_aw_dl_ratio};
@@ -319,11 +284,13 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
 
     // Copy data
     amrex::NonLocalBC::MultiBlockCommMetaData cmd =
-      amrex::NonLocalBC::MultiBlockCommMetaData(receive_br[ori].multiFab(), aboxvec_afrome[ori],
-                                                newmf, nghost, dtos_afrome);
+      amrex::NonLocalBC::MultiBlockCommMetaData(
+        receive_br[ori].multiFab(), aboxvec_afrome[ori],
+        newmf, nghost, dtos_afrome);
 
-    amrex::NonLocalBC::ParallelCopy(receive_br[ori].multiFab(), newmf,
-                                    cmd, 0, 0, 1, dtos_afrome );
+    amrex::NonLocalBC::ParallelCopy(
+      receive_br[ori].multiFab(), newmf,
+      cmd, 0, 0, 1, dtos_afrome );
 
   } else if (field == "velocity") {
     amrex::MultiFab newmf(new_ba, new_dm, 3, 0);
@@ -331,64 +298,56 @@ void MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& rec
 #pragma omp parallel if (amrex::Gpu::notInLaunchRegion())
 #endif
     {
-      for ( amrex::MFIter mfi(newmf,amrex::TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-        const amrex::Array4<const amrex::Real> erf_vel_arr[3] = { erf_data[Vars::xvel].const_array(mfmap[mfi.index()]),
-                                                                  erf_data[Vars::yvel].const_array(mfmap[mfi.index()]),
-                                                                  erf_data[Vars::zvel].const_array(mfmap[mfi.index()]) };
+      for (amrex::MFIter mfi(newmf,amrex::TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const amrex::Array4<const amrex::Real> erf_vel_arr[3] = {
+          erf_data[Vars::xvel].const_array(mfmap[mfi.index()]),
+          erf_data[Vars::yvel].const_array(mfmap[mfi.index()]),
+          erf_data[Vars::zvel].const_array(mfmap[mfi.index()])  };
 
         const amrex::Array4<amrex::Real> erf_arr_copy = newmf.array(mfi);
         const int ndir  = ori.coordDir(); // Normal Dir
-        const int nface_idx = ori.isLow() ? eboxvec_afrome[ori].smallEnd(ndir) : eboxvec_afrome[ori].bigEnd(ndir);
+        //const int nface_idx = ori.isLow() ? eboxvec_afrome[ori].smallEnd(ndir) : eboxvec_afrome[ori].bigEnd(ndir);
         const int tdir1 = (ndir + 1) % 3; // First tangenential dir
         const int tdir2 = (ndir + 2) % 3; // second tangential dir
 
         int r{erf_to_aw_dl_ratio};
         amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
-          amrex::IntVect idx {i,j,k};
+          amrex::IntVect idx {i, j, k};
 
           // idx_c are the coarse indices mapped from the refined idx
-          amrex::IntVect idx_c{idx};
+          amrex::IntVect idx_c {idx};
           idx_c[tdir1] = idx[tdir1] / r;
           idx_c[tdir2] = idx[tdir2] / r;
           idx_c[ndir] = idx[ndir] / r;
           // interpolate tangential velocity faces to center
-          amrex::IntVect idx_tp1{idx_c};
+          amrex::IntVect idx_tp1 {idx_c};
           idx_tp1[tdir1] += 1;
-          erf_arr_copy(idx,tdir1) = 0.5*(erf_vel_arr[tdir1](idx_c) + erf_vel_arr[tdir1](idx_tp1));
+          erf_arr_copy(idx, tdir1) = 0.5 * (erf_vel_arr[tdir1](idx_c) + erf_vel_arr[tdir1](idx_tp1));
           idx_tp1 = idx_c;
           idx_tp1[tdir2] += 1;
-          erf_arr_copy(idx,tdir2) = 0.5*(erf_vel_arr[tdir2](idx_c) + erf_vel_arr[tdir2](idx_tp1));
+          erf_arr_copy(idx, tdir2) = 0.5 * (erf_vel_arr[tdir2](idx_c) + erf_vel_arr[tdir2](idx_tp1));
 
           // take normal velocity from face
           idx_c[ndir] = (idx[ndir] + 1) / r;
           // idx_n[ndir] = nface_idx; // earlier solution
-          erf_arr_copy(idx,ndir) = erf_vel_arr[ndir](idx_c);
+          erf_arr_copy(idx, ndir) = erf_vel_arr[ndir](idx_c);
         });
       }
     }
-    // receive_br[ori].setVal(10.0,0,1);
-    // receive_br[ori].setVal(0.0,1,1);
-    // receive_br[ori].setVal(0.0,2,1);
 
     // Copy data
     amrex::NonLocalBC::MultiBlockCommMetaData cmd =
-      amrex::NonLocalBC::MultiBlockCommMetaData(receive_br[ori].multiFab(), aboxvec_afrome[ori],
-                                                newmf, nghost, dtos_afrome);
+      amrex::NonLocalBC::MultiBlockCommMetaData(
+        receive_br[ori].multiFab(), aboxvec_afrome[ori],
+        newmf, nghost, dtos_afrome);
 
-    /*amrex::Print() << "NEW0 " << newmf.min(0) << " | " << newmf.max(0) << std::endl;
-    amrex::Print() << "NEW1 " << newmf.min(1) << " | " << newmf.max(1) << std::endl;
-    amrex::Print() << "NEW2 " << newmf.min(2) << " | " << newmf.max(2) << std::endl; */
-    amrex::NonLocalBC::ParallelCopy(receive_br[ori].multiFab(), newmf,
-                                    cmd, 0, 0, 3, dtos_afrome );
-
-    /* amrex::Print() << "NEW0 " << receive_br[ori].min(0) << " | " << receive_br[ori].max(0) << std::endl;
-    amrex::Print() << "NEW1 " << newmf.min(1) << " | " << newmf.max(1) << std::endl;
-    amrex::Print() << "NEW2 " << newmf.min(2) << " | " << newmf.max(2) << std::endl; */
+    amrex::NonLocalBC::ParallelCopy(
+      receive_br[ori].multiFab(), newmf,
+      cmd, 0, 0, 3, dtos_afrome );
   } else {
     amrex::Abort("ERF to AMR-Wind copying only supported for fields: temperature, velocity");
   }
-
 }
 
 void
@@ -413,12 +372,15 @@ MultiBlockContainer::FillPatchBlocksAE()
   amrex::MultiFab Vel_AW{ba, dm, 3, 1};
 
   // Bring AMR-Wind data to temporary multifabs
-  amrex::NonLocalBC::ParallelCopy(Temp_AW, amrwind.repo().get_field("temperature")(0),
-                                  *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
-  amrex::NonLocalBC::ParallelCopy(Dens_AW, amrwind.repo().get_field("density")(0),
-                                  *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
-  amrex::NonLocalBC::ParallelCopy(Vel_AW, amrwind.repo().get_field("velocity")(0),
-                                  *(cmd_efroma[0]), 0, 0, 3, dtos_efroma);
+  amrex::NonLocalBC::ParallelCopy(
+    Temp_AW, amrwind.repo().get_field("temperature")(0),
+    *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
+  amrex::NonLocalBC::ParallelCopy(
+    Dens_AW, amrwind.repo().get_field("density")(0),
+    *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
+  amrex::NonLocalBC::ParallelCopy(
+    Vel_AW, amrwind.repo().get_field("velocity")(0),
+    *(cmd_efroma[0]), 0, 0, 3, dtos_efroma);
 
   // Compute ERF variables from AMR-Wind variables and store in ERF data structures
 
@@ -435,14 +397,14 @@ MultiBlockContainer::FillPatchBlocksAE()
     auto temp_aw_arr = Temp_AW[mfi].array();
     amrex::Box ibox = box & ebox_efroma; // intersection of boxes
     amrex::ParallelFor(ibox, [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                                // Save AMR-Wind Scalar into ERF data
-                                cons_arr(i,j,k,RhoScalar_comp) = cons_arr(i,j,k,Rho_comp)*temp_aw_arr(i,j,k);
-                                // Cell-centered velocity using energy preserving correction from Sprague & Satkauskas 2015
-                                amrex::Real dens_correction = std::sqrt(dens_aw_arr(i,j,k)/cons_arr(i,j,k,Rho_comp));
-                                vel_aw_arr(i,j,k,0) *= dens_correction;
-                                vel_aw_arr(i,j,k,1) *= dens_correction;
-                                vel_aw_arr(i,j,k,2) *= dens_correction;
-                            });
+      // Save AMR-Wind Scalar into ERF data
+      cons_arr(i, j, k, RhoScalar_comp) = cons_arr(i, j, k, Rho_comp) * temp_aw_arr(i, j, k);
+      // Cell-centered velocity using energy preserving correction from Sprague & Satkauskas 2015
+      amrex::Real dens_correction = std::sqrt(dens_aw_arr(i, j, k) / cons_arr(i, j, k, Rho_comp));
+      vel_aw_arr(i, j, k, 0) *= dens_correction;
+      vel_aw_arr(i, j, k, 1) *= dens_correction;
+      vel_aw_arr(i, j, k, 2) *= dens_correction;
+    });
   }
 
   // We need to fill the interior boundary cells of velocity so we can interpolate to faces
@@ -461,21 +423,21 @@ MultiBlockContainer::FillPatchBlocksAE()
     auto vel_aw_arr = Vel_AW[mfi].array();
     // interpolate corrected velocities to face centers (only on interior)
     auto velx_arr = erf1.vars_new[0][Vars::xvel][mfi].array();
-    amrex::Box xbox = mfi.nodaltilebox(0) & surroundingNodes(ebox_efroma,0).grow(0,-1);
+    amrex::Box xbox = mfi.nodaltilebox(0) & surroundingNodes(ebox_efroma, 0).grow(0, -1);
     amrex::ParallelFor(xbox, [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                               velx_arr(i,j,k) = 0.5*(vel_aw_arr(i,j,k,0) + vel_aw_arr(i-1,j,k,0));
-                             });
+      velx_arr(i, j, k) = 0.5 * (vel_aw_arr(i, j, k, 0) + vel_aw_arr(i-1, j, k, 0));
+    });
 
     auto vely_arr = erf1.vars_new[0][Vars::yvel][mfi].array();
-    amrex::Box ybox =  mfi.nodaltilebox(1) & surroundingNodes(ebox_efroma,1).grow(1,-1);
+    amrex::Box ybox =  mfi.nodaltilebox(1) & surroundingNodes(ebox_efroma, 1).grow(1, -1);
     amrex::ParallelFor(ybox, [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                               vely_arr(i,j,k) = 0.5*(vel_aw_arr(i,j,k,1) + vel_aw_arr(i,j-1,k,1));
-                             });
+      vely_arr(i, j, k) = 0.5 * (vel_aw_arr(i, j, k, 1) + vel_aw_arr(i, j-1, k, 1));
+    });
 
     auto velz_arr = erf1.vars_new[0][Vars::zvel][mfi].array();
-    amrex::Box zbox =  mfi.nodaltilebox(2) & surroundingNodes(ebox_efroma,2).grow(2,-1);
+    amrex::Box zbox =  mfi.nodaltilebox(2) & surroundingNodes(ebox_efroma, 2).grow(2, -1);
     amrex::ParallelFor(zbox, [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-                               velz_arr(i,j,k) = 0.5*(vel_aw_arr(i,j,k,2) + vel_aw_arr(i,j,k-1,2));
-                             });
+      velz_arr(i, j, k) = 0.5 * (vel_aw_arr(i, j, k, 2) + vel_aw_arr(i, j, k-1, 2));
+    });
   }
 }

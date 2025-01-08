@@ -50,13 +50,15 @@ public:
 
 private:
   // TODO: why does amrwind have to come before erf?
+  // It seems that not doing so results in a conflict
+  // in reading the inputs
   incflo amrwind;
   ERF erf1;
 
   int m_max_step;
-  bool do_two_way_coupling;
-  int two_way_coupling_frequency;
-  int erf_to_aw_dl_ratio{1};
+  bool do_two_way_coupling {false};
+  int two_way_coupling_frequency {1};
+  int erf_to_aw_dl_ratio {1};
 
   std::vector<amrex::Box> eboxvec_afrome;
   std::vector<amrex::Box> aboxvec_afrome;

@@ -74,8 +74,8 @@ MultiBlockContainer::InitializeBlocks ()
   bndry1.resize(num_fields);
   bndry2.resize(num_fields) ;
 
-  const int in_rad = 1;
-  const int out_rad = 1;
+  const int in_rad     = 1;
+  const int out_rad    = 1;
   const int extent_rad = 0;
 
   // for (i = 0; i < nfields; i++)
@@ -277,7 +277,8 @@ MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
         int r{erf_to_aw_dl_ratio};
         amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
-          erf_arr_copy(i,j,k) = erf_arr(i/r,j/r,k/r,RhoScalar_comp) / erf_arr(i/r,j/r,k/r,Rho_comp);
+          erf_arr_copy(i, j, k) = erf_arr(i/r, j/r, k/r, RhoScalar_comp)
+                                / erf_arr(i/r, j/r, k/r, Rho_comp);
         });
       }
     }
@@ -285,12 +286,10 @@ MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
     // Copy data
     amrex::NonLocalBC::MultiBlockCommMetaData cmd =
       amrex::NonLocalBC::MultiBlockCommMetaData(
-        receive_br[ori].multiFab(), aboxvec_afrome[ori],
-        newmf, nghost, dtos_afrome);
+        receive_br[ori].multiFab(), aboxvec_afrome[ori], newmf, nghost, dtos_afrome);
 
     amrex::NonLocalBC::ParallelCopy(
-      receive_br[ori].multiFab(), newmf,
-      cmd, 0, 0, 1, dtos_afrome );
+      receive_br[ori].multiFab(), newmf, cmd, 0, 0, 1, dtos_afrome );
 
   } else if (field == "velocity") {
     amrex::MultiFab newmf(new_ba, new_dm, 3, 0);
@@ -319,11 +318,12 @@ MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
           amrex::IntVect idx_c {idx};
           idx_c[tdir1] = idx[tdir1] / r;
           idx_c[tdir2] = idx[tdir2] / r;
-          idx_c[ndir] = idx[ndir] / r;
+          idx_c[ndir]  = idx[ndir]  / r;
           // interpolate tangential velocity faces to center
           amrex::IntVect idx_tp1 {idx_c};
           idx_tp1[tdir1] += 1;
           erf_arr_copy(idx, tdir1) = 0.5 * (erf_vel_arr[tdir1](idx_c) + erf_vel_arr[tdir1](idx_tp1));
+
           idx_tp1 = idx_c;
           idx_tp1[tdir2] += 1;
           erf_arr_copy(idx, tdir2) = 0.5 * (erf_vel_arr[tdir2](idx_c) + erf_vel_arr[tdir2](idx_tp1));
@@ -339,12 +339,10 @@ MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
     // Copy data
     amrex::NonLocalBC::MultiBlockCommMetaData cmd =
       amrex::NonLocalBC::MultiBlockCommMetaData(
-        receive_br[ori].multiFab(), aboxvec_afrome[ori],
-        newmf, nghost, dtos_afrome);
+        receive_br[ori].multiFab(), aboxvec_afrome[ori], newmf, nghost, dtos_afrome);
 
     amrex::NonLocalBC::ParallelCopy(
-      receive_br[ori].multiFab(), newmf,
-      cmd, 0, 0, 3, dtos_afrome );
+      receive_br[ori].multiFab(), newmf, cmd, 0, 0, 3, dtos_afrome );
   } else {
     amrex::Abort("ERF to AMR-Wind copying only supported for fields: temperature, velocity");
   }
@@ -369,18 +367,15 @@ MultiBlockContainer::FillPatchBlocksAE()
   const amrex::DistributionMapping& dm = erf1.vars_new[0][Vars::cons].DistributionMap();
   amrex::MultiFab Temp_AW{ba, dm, 1, 0};
   amrex::MultiFab Dens_AW{ba, dm, 1, 0};
-  amrex::MultiFab Vel_AW{ba, dm, 3, 1};
+  amrex::MultiFab Vel_AW {ba, dm, 3, 1};
 
   // Bring AMR-Wind data to temporary multifabs
   amrex::NonLocalBC::ParallelCopy(
-    Temp_AW, amrwind.repo().get_field("temperature")(0),
-    *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
+    Temp_AW, amrwind.repo().get_field("temperature")(0), *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
   amrex::NonLocalBC::ParallelCopy(
-    Dens_AW, amrwind.repo().get_field("density")(0),
-    *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
+    Dens_AW, amrwind.repo().get_field("density")(0),     *(cmd_efroma[0]), 0, 0, 1, dtos_efroma);
   amrex::NonLocalBC::ParallelCopy(
-    Vel_AW, amrwind.repo().get_field("velocity")(0),
-    *(cmd_efroma[0]), 0, 0, 3, dtos_efroma);
+    Vel_AW,  amrwind.repo().get_field("velocity")(0),    *(cmd_efroma[0]), 0, 0, 3, dtos_efroma);
 
   // Compute ERF variables from AMR-Wind variables and store in ERF data structures
 
@@ -391,8 +386,8 @@ MultiBlockContainer::FillPatchBlocksAE()
   for (amrex::MFIter mfi(erf1.vars_new[0][Vars::cons]); mfi.isValid(); ++mfi) {
     const amrex::Box& box = mfi.validbox();
     // compute cell-centered scalar and velocities
-    auto cons_arr = erf1.vars_new[0][Vars::cons][mfi].array();
-    auto vel_aw_arr = Vel_AW[mfi].array();
+    auto cons_arr    = erf1.vars_new[0][Vars::cons][mfi].array();
+    auto vel_aw_arr  = Vel_AW[mfi].array();
     auto dens_aw_arr = Dens_AW[mfi].array();
     auto temp_aw_arr = Temp_AW[mfi].array();
     amrex::Box ibox = box & ebox_efroma; // intersection of boxes

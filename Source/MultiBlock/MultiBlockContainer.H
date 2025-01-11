@@ -38,15 +38,22 @@ public:
   void FillPatchBlocksAE ();
 
   // Fill AMR-Wind Boundary Regsiter from ERF1
-  void CopyERFtoAMRWindBoundaryReg (amrex::BndryRegister& receive_br,  amrex::Orientation ori, amrex::Real time, const std::string& field);
+  void CopyERFtoAMRWindBoundaryReg (
+    amrex::BndryRegister& receive_br,  amrex::Orientation ori,
+    amrex::Real time, const std::string& field);
 
   void PopulateErfTimesteps(amrex::Real* tsteps);
 
+  // boundary registers for AMR-Wind
+  // Only two fields supported for now -- velocity and temperature
+  static constexpr int num_fields {2};
   amrex::Vector<amrex::BndryRegister*> bndry1;
   amrex::Vector<amrex::BndryRegister*> bndry2;
 
-  amrex::Real old_bndry_time;
-  amrex::Real new_bndry_time;
+  amrex::Real old_bndry_time {0.0};
+  amrex::Real new_bndry_time {0.0};
+
+  incflo& get_amrwind () {return amrwind;}
 
 private:
   // TODO: why does amrwind have to come before erf?

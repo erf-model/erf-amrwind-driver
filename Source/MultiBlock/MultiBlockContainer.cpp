@@ -65,15 +65,13 @@ MultiBlockContainer::InitializeBlocks ()
   amrex::Print() << "======== AMRWIND INITIALIZATION ========"  << "\n";
   amrwind.InitData();
 
-  amrex::BoxArray ba(amrwind.boxArray(0));
-  amrex::DistributionMapping dm{ba};
-
   // Allocate boundary registers for AMR-Wind
   // Only two fields supported for now -- velocity and temperature
-  int num_fields = 2;
   bndry1.resize(num_fields);
-  bndry2.resize(num_fields) ;
+  bndry2.resize(num_fields);
 
+  amrex::BoxArray ba(amrwind.boxArray(0));
+  amrex::DistributionMapping dm{ba};
   const int in_rad     = 1;
   const int out_rad    = 1;
   const int extent_rad = 0;
@@ -187,13 +185,13 @@ MultiBlockContainer::AdvanceBlocks()
   for (int step(0); step < m_max_step; ++step) {
 
     if (step == 0) {
-      fill_old_bndry(bndry1,this);
+      fill_amrwind_bndry(bndry1, this);//, true);
     }
 
     amrex::Print() << "======== ERF EVOLVE ========"  << "\n";
     erf1.Evolve_MB(aw_to_erf_dt_ratio*step+1, aw_to_erf_dt_ratio);
 
-    fill_new_bndry(bndry2,this);
+    fill_amrwind_bndry(bndry2, this);
 
     amrex::Print() << "======== AMRWIND EVOLVE ========"  << "\n";
     amrwind.Evolve_MultiBlock(step+1,1);
@@ -238,11 +236,11 @@ MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
   */
   if (on_old_time) {
     amrex::Print() << std::endl << "FILLPATCHING _ " << field
-                   << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl << std::endl;
+                   << " _ FROM ERF TO AMR WIND ON _ old _ TIME, ORIENTATION " << ori << std::endl;
   }
   else {
     amrex::Print() << std::endl << "FILLPATCHING _ " << field
-                   << " _ FROM ERF TO AMR WIND ON _ new _ TIME, ORIENTATION " << ori << std::endl << std::endl;
+                   << " _ FROM ERF TO AMR WIND ON _ new _ TIME, ORIENTATION " << ori << std::endl;
   }
   amrex::Vector<amrex::MultiFab>& erf_data = on_old_time ? erf1.vars_old[erf_source_level] : erf1.vars_new[erf_source_level];
 

@@ -49,10 +49,10 @@ erf1.spatial_order = 2
 prob.rho_0 = 1.161440171
 prob.Theta0 = 300.0
 prob.use_bubble = 1
-prob.bubble_loc_x = 500
+prob.bubble_loc_x = 250
 prob.bubble_loc_y = 750
 prob.bubble_loc_z = 500
-prob.bubble_radius = 125
+prob.bubble_radius = 100
 prob.bubble_temp_ratio = 1.05
 
 prob.A_0 = 1.0

@@ -14,7 +14,7 @@ git submodule update --init --depth=1
 ### Build AMReX
 cd ${TOP_MOD}/amrex
 cmake -DBUILD_SHARED_LIBS=OFF \
-      -DAMReX_EB=OFF -DAMReX_PIC=YES \
+      -DAMReX_EB=ON -DAMReX_PIC=YES \
       -B ${TOP}/amrex-build -DCMAKE_INSTALL_PREFIX=${TOP}/amrex-install -S ${TOP_MOD}/amrex \
       -DCMAKE_BUILD_TYPE:STRING=RELEASE
 cd ${TOP}/amrex-build

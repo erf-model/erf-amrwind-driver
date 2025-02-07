@@ -24,7 +24,7 @@ make install
 ### Build AMReX-Hydro
 cd ${TOP_MOD}/AMReX-Hydro
 cmake -DBUILD_SHARED_LIBS=OFF \
-      -DAMReX_EB=OFF -DHYDRO_EB=OFF \
+      -DHYDRO_EB=ON \
       -B ${TOP}/AMReX-Hydro-build -DCMAKE_INSTALL_PREFIX=${TOP}/AMReX-Hydro-install -S ${TOP_MOD}/AMReX-Hydro \
       -DAMReX_ROOT=${TOP}/amrex-install/lib/cmake/AMReX/ \
       -DCMAKE_PREFIX_PATH==${TOP}/amrex-install/lib/cmake/AMReX \

@@ -39,7 +39,7 @@ erf.use_coriolis         = false
 erf.use_rayleigh_damping = false
 
 erf.molec_diff_type  = "Constant"
-erf.dynamicViscosity = 0.1
+erf.dynamic_viscosity = 0.1
 erf.les_type        = "None"
 erf.Cs              = 0.1
 

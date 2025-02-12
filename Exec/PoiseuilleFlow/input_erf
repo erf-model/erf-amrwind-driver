@@ -38,7 +38,7 @@ erf.use_rayleigh_damping = false
 erf.les_type        = "None"
 erf.rho0_trans       = 1.0
 erf.molec_diff_type  = "Constant"
-erf.dynamicViscosity = 0.1
+erf.dynamic_viscosity = 0.1
 
 ## add pressure gradient
 erf.abl_driver_type = "PressureGradient"

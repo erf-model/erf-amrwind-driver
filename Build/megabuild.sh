@@ -45,7 +45,6 @@ cmake -DBUILD_SHARED_LIBS=OFF \
       -DERF_USE_INTERNAL_AMREX:BOOL=OFF \
       -DERF_ENABLE_TESTS:BOOL=OFF \
       -DCMAKE_PREFIX_PATH=${TOP}/amrex-install/lib/cmake/AMReX \
-      -DERF_ENABLE_FCOMPARE:BOOL=ON \
       -DERF_ENABLE_DOCUMENTATION:BOOL=OFF \
       -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
       -S ${TOP_MOD}/ERF -B ${TOP}/ERF-build
@@ -73,7 +72,6 @@ cd ${TOP}
 cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \
       -DCMAKE_C_COMPILER:STRING=mpicc \
-      -DCMAKE_Fortran_COMPILER:STRING=mpifort \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DAMRWIND_HOME:STRING=${TOP_MOD}/amr-wind \
       -DERF_HOME:STRING=${TOP_MOD}/ERF \

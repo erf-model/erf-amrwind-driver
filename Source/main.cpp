@@ -132,9 +132,9 @@ int main (int argc, char* argv[])
             pp.query("max_step", max_step);
         }
 
-        // Parse data for erf1 constructor
+        // Parse data for erf constructor
         {
-            ParmParse pp("erf1");
+            ParmParse pp("erf");
             amrex::Vector<amrex::Real> lo  = {0.,0.,0.};
             amrex::Vector<amrex::Real> hi  = {0.,0.,0.};
             amrex::Vector<int> periodicity = {1,1,1};
@@ -157,7 +157,7 @@ int main (int argc, char* argv[])
             n_cell_v.push_back(n_cell);
             is_per_v.push_back(is_per);
             ref_rat_v.push_back(ref_rat);
-            prefix_v.push_back("erf1");
+            prefix_v.push_back("erf");
         }
 
         // Construct a MultiBlockContainer

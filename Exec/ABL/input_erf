@@ -1,0 +1,63 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
+# PROBLEM SIZE & GEOMETRY
+erf.prob_lo = 0. 0. 0.
+erf.prob_hi = 1500. 1500. 1000.
+erf.n_cell  =    72      72     48
+erf.ref_ratio   = (2,2,2)
+
+erf.is_periodic = 1 1 0
+erf.zlo.type = "SlipWall"
+erf.zhi.type = "SlipWall"
+
+# TIME STEP CONTROL
+erf.use_native_mri     = 1
+erf.fixed_dt           = 0.4  # fixed time step depending on grid resolution
+
+# DIAGNOSTICS & VERBOSITY
+erf.sum_interval   = 1       # timesteps between computing mass
+erf.v              = 1       # verbosity in ERF.cpp
+
+# CHECKPOINT FILES
+erf.check_file      = erf_chk        # root name of checkpoint file
+erf.check_int       =     -1   # number of timesteps between checkpoints
+
+# PLOTFILES
+erf.plot_file_1     = erf_plt        # prefix of plotfile name
+erf.plot_int_1      = 5         # number of timesteps between plotfiles
+erf.plot_vars_1     = density rhoadv_0 x_velocity y_velocity z_velocity pressure temp theta scalar
+
+# SOLVER CHOICE
+erf.alpha_T = 0.0
+erf.alpha_C = 1.0
+erf.use_gravity = false
+erf.use_coriolis         = false
+erf.use_rayleigh_damping = false
+
+erf.molec_diff_type = "None"
+erf.les_type        = "None"
+erf.Cs              = 0.1
+
+erf.spatial_order = 2
+
+# PROBLEM PARAMETERS
+prob.rho_0 = 1.161440171
+prob.Theta0 = 300.0
+prob.use_bubble = 1
+prob.bubble_loc_x = 500
+prob.bubble_loc_y = 750
+prob.bubble_loc_z = 500
+prob.bubble_radius = 125
+prob.bubble_temp_ratio = 1.05
+
+prob.A_0 = 1.0
+
+prob.U_0 = 10.0
+prob.V_0 = 0.0
+prob.W_0 = 0.0
+
+# Higher values of perturbations lead to instability
+# Instability seems to be coming from BC
+prob.U_0_Pert_Mag = 0.0
+prob.V_0_Pert_Mag = 0.0 #
+prob.W_0_Pert_Mag = 0.0

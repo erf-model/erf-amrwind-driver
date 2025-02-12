@@ -14,4 +14,3 @@
 	path = Submodules/amr-wind
 	url = https://github.com/erf-model/amr-wind.git
 	shallow = true
-	branch = splitting_build

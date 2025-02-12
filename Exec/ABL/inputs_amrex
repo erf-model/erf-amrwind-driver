@@ -1,6 +1,6 @@
 # ------------------  INPUTS FOR AMREX  -------------------
 # LIST OF FILES
-FILE = input_erf1
+FILE = input_erf
 # FILE = input_erf2
 FILE = input_amrwind
 

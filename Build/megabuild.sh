@@ -14,7 +14,7 @@ git submodule update --init --depth=1
 ### Build AMReX
 cd ${TOP_MOD}/amrex
 cmake -DBUILD_SHARED_LIBS=OFF \
-      -DAMReX_EB=OFF -DAMReX_PIC=YES \
+      -DAMReX_EB=ON -DAMReX_PIC=YES \
       -B ${TOP}/amrex-build -DCMAKE_INSTALL_PREFIX=${TOP}/amrex-install -S ${TOP_MOD}/amrex \
       -DCMAKE_BUILD_TYPE:STRING=RELEASE
 cd ${TOP}/amrex-build
@@ -24,7 +24,7 @@ make install
 ### Build AMReX-Hydro
 cd ${TOP_MOD}/AMReX-Hydro
 cmake -DBUILD_SHARED_LIBS=OFF \
-      -DAMReX_EB=OFF -DHYDRO_EB=OFF \
+      -DHYDRO_EB=OFF -DHYDRO_NO_EB=ON \
       -B ${TOP}/AMReX-Hydro-build -DCMAKE_INSTALL_PREFIX=${TOP}/AMReX-Hydro-install -S ${TOP_MOD}/AMReX-Hydro \
       -DAMReX_ROOT=${TOP}/amrex-install/lib/cmake/AMReX/ \
       -DCMAKE_PREFIX_PATH==${TOP}/amrex-install/lib/cmake/AMReX \
@@ -45,7 +45,6 @@ cmake -DBUILD_SHARED_LIBS=OFF \
       -DERF_USE_INTERNAL_AMREX:BOOL=OFF \
       -DERF_ENABLE_TESTS:BOOL=OFF \
       -DCMAKE_PREFIX_PATH=${TOP}/amrex-install/lib/cmake/AMReX \
-      -DERF_ENABLE_FCOMPARE:BOOL=ON \
       -DERF_ENABLE_DOCUMENTATION:BOOL=OFF \
       -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
       -S ${TOP_MOD}/ERF -B ${TOP}/ERF-build
@@ -63,8 +62,7 @@ cmake -DBUILD_SHARED_LIBS=ON \
       -DAMR_WIND_ENABLE_UNIT_TESTS:BOOL=OFF \
       -S ${TOP_MOD}/amr-wind \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro" \
-      -DCMAKE_BUILD_TYPE:STRING=RELEASE \
-      -DERF_AMR_WIND_MULTIBLOCK:BOOL=ON
+      -DCMAKE_BUILD_TYPE:STRING=RELEASE
 cd ${TOP}/amr-wind-build
 make -j16
 make install
@@ -74,7 +72,6 @@ cd ${TOP}
 cmake -DCMAKE_INSTALL_PREFIX:PATH=${TOP}/erf-amrwind-driver-install \
       -DCMAKE_CXX_COMPILER:STRING=mpicxx \
       -DCMAKE_C_COMPILER:STRING=mpicc \
-      -DCMAKE_Fortran_COMPILER:STRING=mpifort \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DAMRWIND_HOME:STRING=${TOP_MOD}/amr-wind \
       -DERF_HOME:STRING=${TOP_MOD}/ERF \

@@ -82,18 +82,11 @@ Problem::init_custom_pert(
   ParallelForRNG(bx, [=, parms=parms] AMREX_GPU_DEVICE(int i, int j, int k, const amrex::RandomEngine& engine) noexcept {
     // Geometry
     const Real* prob_lo = geomdata.ProbLo();
-    const Real* prob_hi = geomdata.ProbHi();
+    //const Real* prob_hi = geomdata.ProbHi();
     const Real* dx = geomdata.CellSize();
     const Real x = prob_lo[0] + (i + 0.5) * dx[0];
     const Real y = prob_lo[1] + (j + 0.5) * dx[1];
     const Real z = prob_lo[2] + (k + 0.5) * dx[2];
-
-    // Define a point (xc,yc,zc) at the center of the domain
-    const Real xc = 0.5 * (prob_lo[0] + prob_hi[0]);
-    const Real yc = 0.5 * (prob_lo[1] + prob_hi[1]);
-    const Real zc = 0.5 * (prob_lo[2] + prob_hi[2]);
-
-    const Real r  = std::sqrt((x-xc)*(x-xc) + (y-yc)*(y-yc) + (z-zc)*(z-zc));
 
     // Add temperature perturbations
     if ((z <= parms.pert_ref_height) && (parms.T_0_Pert_Mag != 0.0)) {
@@ -197,29 +190,4 @@ Problem::init_custom_pert(
         z_vel(i, j, k) = parms.W_0 + z_vel_prime;
     }
   });
-}
-
-void
-Problem::init_custom_terrain(
-    const Geometry& /*geom*/,
-    MultiFab& z_phys_nd,
-    const Real& /*time*/)
-{
-    // Number of ghost cells
-    int ngrow = z_phys_nd.nGrow();
-
-    for ( MFIter mfi(z_phys_nd, TilingIfNotGPU()); mfi.isValid(); ++mfi )
-    {
-        // Grown box with no z range
-        amrex::Box xybx = mfi.growntilebox(ngrow);
-        xybx.setRange(2,0);
-
-        Array4<Real> z_arr = z_phys_nd.array(mfi);
-
-        ParallelFor(xybx, [=] AMREX_GPU_DEVICE (int i, int j, int) {
-
-            // Flat terrain with z = 0 at k = 0
-            z_arr(i,j,0) = 0.;
-        });
-    }
 }

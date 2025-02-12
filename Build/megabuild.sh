@@ -24,7 +24,7 @@ make install
 ### Build AMReX-Hydro
 cd ${TOP_MOD}/AMReX-Hydro
 cmake -DBUILD_SHARED_LIBS=OFF \
-      -DHYDRO_EB=ON \
+      -DHYDRO_EB=OFF -DHYDRO_NO_EB=ON \
       -B ${TOP}/AMReX-Hydro-build -DCMAKE_INSTALL_PREFIX=${TOP}/AMReX-Hydro-install -S ${TOP_MOD}/AMReX-Hydro \
       -DAMReX_ROOT=${TOP}/amrex-install/lib/cmake/AMReX/ \
       -DCMAKE_PREFIX_PATH==${TOP}/amrex-install/lib/cmake/AMReX \
@@ -63,8 +63,7 @@ cmake -DBUILD_SHARED_LIBS=ON \
       -DAMR_WIND_ENABLE_UNIT_TESTS:BOOL=OFF \
       -S ${TOP_MOD}/amr-wind \
       -DCMAKE_PREFIX_PATH="${TOP}/amrex-install/lib/cmake/AMReX;${TOP}/AMReX-Hydro-install/lib/cmake/AMReX-Hydro" \
-      -DCMAKE_BUILD_TYPE:STRING=RELEASE \
-      -DERF_AMR_WIND_MULTIBLOCK:BOOL=ON
+      -DCMAKE_BUILD_TYPE:STRING=RELEASE
 cd ${TOP}/amr-wind-build
 make -j16
 make install

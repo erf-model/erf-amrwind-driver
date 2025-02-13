@@ -50,7 +50,7 @@ ABL.bndry_file = "/Users/mhdave/erf-amrwind-driver/Exec/PoiseuilleFlow/BndryFile
 ABL.bndry_io_mode = 1
 ABL.bndry_planes = ylo xlo yhi xhi
 ABL.bndry_output_start_time = 0.0
-ABL.bndry_var_names = velocity #temperature
+ABL.bndry_var_names = velocity temperature
 ABL.bndry_output_format = erf-multiblock
 
 
@@ -66,8 +66,8 @@ geometry.is_periodic    =   0   0   0   # Periodicity x y z (0/1)
 #  zlo.type =   "wall_model"
 zlo.type =   "no_slip_wall"
 zlo.velocity = 0.0 0.0 0.0     # for Dirichlet BC
-#zlo.temperature_type = "fixed_gradient"
-#zlo.temperature = 0.0
+zlo.temperature_type = "fixed_gradient"
+zlo.temperature = 0.0
 
 zhi.type =   "slip_wall"
 zhi.temperature_type = "fixed_gradient"

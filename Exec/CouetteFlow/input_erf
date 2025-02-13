@@ -47,7 +47,7 @@ erf.spatial_order = 2
 
 # PROBLEM PARAMETERS
 prob.rho_0 = 1.161440171
-prob.Theta0 = 300.0
+prob.T_0 = 300.0
 prob.use_bubble = 1
 prob.bubble_loc_x = 250
 prob.bubble_loc_y = 750

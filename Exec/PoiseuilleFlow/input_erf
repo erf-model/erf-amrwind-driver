@@ -48,7 +48,7 @@ erf.init_type = "uniform"
 
 # PROBLEM PARAMETERS
 prob.rho_0 = 1.0
-prob.Theta0 = 300.0
+prob.T_0 = 300.0
 
 #prob.prob_type = 10	# start with perturbed parabolic profile
 prob.prob_type = 11	# start with a linear profile

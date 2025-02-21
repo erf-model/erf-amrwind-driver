@@ -8,17 +8,11 @@
 #include "ERF_ProbCommon.H"
 
 struct ProbParm : ProbParmDefaults {
-  bool use_bubble = 0;
-  amrex::Real bubble_temp_ratio = 1.1;
-  amrex::Real bubble_loc_x = 0.0;
-  amrex::Real bubble_loc_y = 0.0;
-  amrex::Real bubble_loc_z = 0.0;
-  amrex::Real bubble_radius = 100;
-
   amrex::Real rho_0 = 0.0;
   amrex::Real T_0   = 0.0;
   amrex::Real A_0   = 1.0;
-  amrex::Real KE_0  = 0.1;
+  amrex::Real KE_0  = 0.1;  // initialize to calculated rho_hse times input KE
+  amrex::Real rhoKE_0 = -1; // alternatively, initialize to specified (rho*KE)
 
   amrex::Real KE_decay_height = -1;
   amrex::Real KE_decay_order  =  1;

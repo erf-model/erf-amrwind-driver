@@ -1,63 +1,72 @@
-# ------------------  INPUTS TO MAIN PROGRAM  -------------------
-
 # PROBLEM SIZE & GEOMETRY
-erf.prob_lo = 0. 0. 0.
-erf.prob_hi = 1500. 1500. 1000.
-erf.n_cell  =    72      72     48
-erf.ref_ratio   = (2,2,2)
+geometry.prob_extent =  640    640    896
+amr.n_cell           =  128    128    184
 
-erf.is_periodic = 1 1 0
-erf.zlo.type = "SlipWall"
-erf.zhi.type = "SlipWall"
+geometry.is_periodic = 1 1 0
+
+zlo.type = "NoSlipWall"
+zhi.type = "SlipWall"
+#zhi.theta_grad = 0.003
 
 # TIME STEP CONTROL
-erf.use_native_mri     = 1
 erf.fixed_dt           = 0.4  # fixed time step depending on grid resolution
 
 # DIAGNOSTICS & VERBOSITY
 erf.sum_interval   = 1       # timesteps between computing mass
 erf.v              = 1       # verbosity in ERF.cpp
+amr.v              = 1       # verbosity in Amr.cpp
+
+#erf.data_log = my_data_file
+#erf.sample_point_log = my_sample_point
+#erf.sample_point = 6 63 5
+#erf.sample_line_log = my_sample_line
+#erf.sample_line = 63 63 5
 
 # CHECKPOINT FILES
-erf.check_file      = erf_chk        # root name of checkpoint file
-erf.check_int       =     -1   # number of timesteps between checkpoints
+erf.check_file      = chk        # root name of checkpoint file
+erf.check_int       = -1        # number of timesteps between checkpoints
 
 # PLOTFILES
 erf.plot_file_1     = erf_plt        # prefix of plotfile name
-erf.plot_int_1      = 5         # number of timesteps between plotfiles
-erf.plot_vars_1     = density rhoadv_0 x_velocity y_velocity z_velocity pressure temp theta scalar
+erf.plot_int_1      = 20         # number of timesteps between plotfiles
+erf.plot_vars_1     = density rhoadv_0 x_velocity y_velocity z_velocity pressure temp theta
 
 # SOLVER CHOICE
-erf.alpha_T = 0.0
-erf.alpha_C = 1.0
-erf.use_gravity = false
-erf.use_coriolis         = false
-erf.use_rayleigh_damping = false
+erf.use_gravity = true
+erf.anelastic   = 1
+
+erf.abl_driver_type = "GeostrophicWind"
+erf.abl_geo_wind    = 5.0 0.0 0.0
+
+erf.use_coriolis = true
+erf.latitude = 90
+erf.rotational_time_period = 125663.706143591729539
 
 erf.molec_diff_type = "None"
-erf.les_type        = "None"
+erf.les_type        = "Smagorinsky"
 erf.Cs              = 0.1
 
-erf.spatial_order = 2
+# erf.init_type = "uniform"
+erf.init_type = input_sounding
+erf.init_sounding_ideal = true
 
 # PROBLEM PARAMETERS
-prob.rho_0 = 1.161440171
-prob.T_0 = 300.0
-prob.use_bubble = 1
-prob.bubble_loc_x = 500
-prob.bubble_loc_y = 750
-prob.bubble_loc_z = 500
-prob.bubble_radius = 125
-prob.bubble_temp_ratio = 1.05
-
+prob.rho_0 = 1.0
 prob.A_0 = 1.0
 
-prob.U_0 = 10.0
-prob.V_0 = 0.0
-prob.W_0 = 0.0
+#prob.U_0 = 5.0
+#prob.V_0 = 0.0
+#prob.W_0 = 0.0
+#prob.T_0 = 300.0
 
 # Higher values of perturbations lead to instability
 # Instability seems to be coming from BC
 prob.U_0_Pert_Mag = 0.0
-prob.V_0_Pert_Mag = 0.0 #
+prob.V_0_Pert_Mag = 0.0
 prob.W_0_Pert_Mag = 0.0
+
+prob.pert_deltaU     = 1.0
+prob.pert_deltaV     = 1.0
+prob.pert_periods_U  = 4.0
+prob.pert_periods_V  = 4.0
+prob.pert_ref_height = 50

@@ -24,12 +24,12 @@ Problem::Problem()
 
 void
 Problem::init_custom_pert(
-    const amrex::Box&  bx,
+    const amrex::Box& /*bx*/,
     const amrex::Box& xbx,
     const amrex::Box& ybx,
     const amrex::Box& zbx,
     amrex::Array4<amrex::Real const> const& /*state*/,
-    amrex::Array4<amrex::Real      > const& state_pert,
+    amrex::Array4<amrex::Real      > const& /*state_pert*/,
     amrex::Array4<amrex::Real      > const& x_vel,
     amrex::Array4<amrex::Real      > const& y_vel,
     amrex::Array4<amrex::Real      > const& z_vel,
@@ -41,24 +41,8 @@ Problem::init_custom_pert(
     amrex::Array4<amrex::Real const> const& /*mf_m*/,
     amrex::Array4<amrex::Real const> const& /*mf_u*/,
     amrex::Array4<amrex::Real const> const& /*mf_v*/,
-    const SolverChoice& sc)
+    const SolverChoice& /*sc*/)
 {
-    const bool use_moisture = (sc.moisture_type != MoistureType::None);
-
-  amrex::ParallelFor(bx, [=, parms=parms] AMREX_GPU_DEVICE(int i, int j, int k) noexcept
-  {
-    // Arbitrarily choose the radius of the bubble to be 0.05 times the length of the domain
-
-    // Set scalar = A_0*exp(-10r^2), where r is distance from center of domain
-    state_pert(i, j, k, RhoScalar_comp) = 0.0;
-
-    if (use_moisture) {
-        state_pert(i, j, k, RhoQ1_comp) = 0.0;
-        state_pert(i, j, k, RhoQ2_comp) = 0.0;
-    }
-
-  });
-
   amrex::ParallelFor(xbx, [=, parms=parms] AMREX_GPU_DEVICE(int i, int j, int k) noexcept
   {
       const Real* prob_lo = geomdata.ProbLo();

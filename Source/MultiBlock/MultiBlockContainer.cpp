@@ -275,7 +275,7 @@ MultiBlockContainer::CopyERFtoAMRWindBoundaryReg (
         int r{erf_to_aw_dl_ratio};
         amrex::ParallelFor(mfi.growntilebox(),[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
-          erf_arr_copy(i, j, k) = erf_arr(i/r, j/r, k/r, RhoScalar_comp)
+          erf_arr_copy(i, j, k) = erf_arr(i/r, j/r, k/r, RhoTheta_comp)
                                 / erf_arr(i/r, j/r, k/r, Rho_comp);
         });
       }
@@ -383,15 +383,15 @@ MultiBlockContainer::FillPatchBlocksAE()
 #endif
   for (amrex::MFIter mfi(erf1.vars_new[0][Vars::cons]); mfi.isValid(); ++mfi) {
     const amrex::Box& box = mfi.validbox();
-    // compute cell-centered scalar and velocities
+    // compute cell-centered temperature and velocities
     auto cons_arr    = erf1.vars_new[0][Vars::cons][mfi].array();
     auto vel_aw_arr  = Vel_AW[mfi].array();
     auto dens_aw_arr = Dens_AW[mfi].array();
     auto temp_aw_arr = Temp_AW[mfi].array();
     amrex::Box ibox = box & ebox_efroma; // intersection of boxes
     amrex::ParallelFor(ibox, [=] AMREX_GPU_DEVICE (int i, int j, int k) {
-      // Save AMR-Wind Scalar into ERF data
-      cons_arr(i, j, k, RhoScalar_comp) = cons_arr(i, j, k, Rho_comp) * temp_aw_arr(i, j, k);
+      // Save AMR-Wind temperature into ERF data
+      cons_arr(i, j, k, RhoTheta_comp) = cons_arr(i, j, k, Rho_comp) * temp_aw_arr(i, j, k);
       // Cell-centered velocity using energy preserving correction from Sprague & Satkauskas 2015
       amrex::Real dens_correction = std::sqrt(dens_aw_arr(i, j, k) / cons_arr(i, j, k, Rho_comp));
       vel_aw_arr(i, j, k, 0) *= dens_correction;

@@ -1,54 +1,50 @@
-# ------------------  INPUTS TO MAIN PROGRAM  -------------------
-
 # PROBLEM SIZE & GEOMETRY
-erf.prob_lo = 0. 0. 0.
-erf.prob_hi = 3. 3. 1.
-erf.n_cell  = 48 48 16
-erf.ref_ratio   = (2,2,2)
+erf.prob_lo   = 0. 0. 0.
+erf.prob_hi   = 3. 3. 1.
+erf.n_cell    = 48 48 16
+erf.ref_ratio = (2,2,2)
 
+# BOUNDARY CONDITIONS
 erf.is_periodic = 1 1 0
 erf.zlo.type = "NoSlipWall"
 erf.zhi.type = "SlipWall"
 
 # TIME STEP CONTROL
-# erf.use_native_mri    = 1
 erf.substepping_type = None
-erf.fixed_dt          = 0.02  # fixed time step depending on grid resolution
+erf.fixed_dt         = 0.02
 
 # DIAGNOSTICS & VERBOSITY
-erf.sum_interval   = 1       # timesteps between computing mass
-erf.v              = 1       # verbosity in ERF.cpp
+erf.sum_interval   = 1
+erf.v              = 0
 
 # CHECKPOINT FILES
-erf.check_file      = erf_chk        # root name of checkpoint file
-erf.check_int       =     -1   # number of timesteps between checkpoints
+erf.check_file      = erf_chk
+erf.check_int       =     -1
 
 # PLOTFILES
-erf.plot_file_1     = erf_plt        # prefix of plotfile name
-erf.plot_int_1      = 10         # number of timesteps between plotfiles
+erf.plot_file_1     = erf_plt
+erf.plot_int_1      = 10
 erf.plot_vars_1     = density rhoadv_0 x_velocity y_velocity z_velocity pressure temp theta scalar
 
-# SOLVER CHOICE
+# PHYSICS
 erf.alpha_T = 0.0
 erf.alpha_C = 0.0
-erf.use_gravity = false
-erf.use_coriolis         = false
-erf.use_rayleigh_damping = false
+erf.use_gravity  = false
+erf.use_coriolis = false
 
-erf.les_type        = "None"
-erf.rho0_trans       = 1.0
-erf.molec_diff_type  = "Constant"
+erf.les_type          = "None"
+erf.rho0_trans        = 1.0
+erf.molec_diff_type   = "Constant"
 erf.dynamic_viscosity = 0.1
 
-## add pressure gradient
-erf.abl_driver_type = "PressureGradient"
+erf.abl_driver_type   = "PressureGradient"
 erf.abl_pressure_grad = -0.2 0. 0.
 
 erf.init_type = "uniform"
 
 # PROBLEM PARAMETERS
 prob.rho_0 = 1.0
-prob.Theta0 = 300.0
+prob.T_0   = 300.0
 
 #prob.prob_type = 10	# start with perturbed parabolic profile
 prob.prob_type = 11	# start with a linear profile

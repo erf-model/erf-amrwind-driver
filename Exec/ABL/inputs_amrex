@@ -3,7 +3,7 @@ FILE = input_erf
 FILE = input_amrwind
 
 # MAX STEPS FOR ALL BLOCKS
-max_step  = 10
+max_step  = 20
 stop_time = 3600
 
 # MULTIBLOCK PARAMETERS

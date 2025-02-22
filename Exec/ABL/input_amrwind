@@ -110,15 +110,19 @@ zhi.type =   "slip_wall"
 
 xlo.type = "mass_inflow_outflow"
 xlo.density_type = "zero_gradient"
+xlo.temperature = 0.0   # dummy
 
 xhi.type = "mass_inflow_outflow"
 xhi.density_type = "zero_gradient"
+xhi.temperature = 0.0
 
 ylo.type = "mass_inflow_outflow"
 ylo.density_type = "zero_gradient"
+ylo.temperature = 0.0
 
 yhi.type = "mass_inflow_outflow"
 yhi.density_type = "zero_gradient"
+yhi.temperature = 0.0
 
 ABL.bndry_file = "BndryFile"
 ABL.bndry_io_mode = 1

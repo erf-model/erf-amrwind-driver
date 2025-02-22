@@ -1,12 +1,13 @@
 # PROBLEM SIZE & GEOMETRY
-geometry.prob_extent =  640    640    896
-amr.n_cell           =  128    128    184
+erf.prob_hi =    0.     0.   896.
+erf.prob_hi =  640.   640.   896.
+erf.n_cell  =  128    128    184
 
-geometry.is_periodic = 1 1 0
+erf.is_periodic = 1 1 0
 
-zlo.type = "NoSlipWall"
-zhi.type = "SlipWall"
-#zhi.theta_grad = 0.003
+erf.zlo.type = "NoSlipWall"
+erf.zhi.type = "SlipWall"
+#erf.zhi.theta_grad = 0.003
 
 # TIME STEP CONTROL
 erf.fixed_dt           = 0.4  # fixed time step depending on grid resolution
@@ -14,7 +15,6 @@ erf.fixed_dt           = 0.4  # fixed time step depending on grid resolution
 # DIAGNOSTICS & VERBOSITY
 erf.sum_interval   = 1       # timesteps between computing mass
 erf.v              = 1       # verbosity in ERF.cpp
-amr.v              = 1       # verbosity in Amr.cpp
 
 #erf.data_log = my_data_file
 #erf.sample_point_log = my_sample_point

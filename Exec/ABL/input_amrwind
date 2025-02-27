@@ -7,14 +7,15 @@ time.max_step                =   10000        # Max number of time steps
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨#
 #         TIME STEP COMPUTATION         #
 #.......................................#
-time.fixed_dt         =   0.4        # Use this constant dt if > 0
-time.cfl              =   0.95         # CFL factor
+time.fixed_dt         =   0.8        # Use this constant dt if > 0
+time.cfl              =   1.0         # CFL factor
 
 #¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨#
 #            INPUT AND OUTPUT           #
 #.......................................#
+#io.restart_file 	      =  chk00010
 time.plot_interval            =  20       # Steps between plot files
-time.checkpoint_interval      =  -1       # Steps between checkpoint files
+time.checkpoint_interval      =  100       # Steps between checkpoint files
 ABL.stats_output_frequency    =  20
 #ABL.stats_output_format = netcdf
 
@@ -25,6 +26,7 @@ incflo.gravity          =   0.  0. -9.81  # Gravitational force (3D)
 incflo.density             = 1.0          # Reference density
 
 ## Solver options
+incflo.do_initial_proj = true
 incflo.initial_iterations = 0
 incflo.use_godunov = 1
 incflo.godunov_type = weno_z
@@ -76,8 +78,8 @@ ABL.cutoff_height       = 50
 ABL.perturb_velocity    = true
 ABL.deltaU              = 1.0
 ABL.deltaV              = 1.0
-ABL.Uperiods            = 4.0
-ABL.Vperiods            = 4.0
+ABL.Uperiods            = 2.0
+ABL.Vperiods            = 2.0
 ABL.perturb_ref_height  = 50
 
 ABL.init_tke_beare_profile = false

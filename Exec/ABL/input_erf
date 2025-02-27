@@ -10,7 +10,7 @@ erf.zhi.type = "SlipWall"
 #erf.zhi.theta_grad = 0.003
 
 # TIME STEP CONTROL
-erf.fixed_dt           = 0.4  # fixed time step depending on grid resolution
+erf.fixed_dt           = 0.8  # fixed time step depending on grid resolution
 
 # DIAGNOSTICS & VERBOSITY
 erf.sum_interval   = 1       # timesteps between computing mass
@@ -23,8 +23,9 @@ erf.v              = 1       # verbosity in ERF.cpp
 #erf.sample_line = 63 63 5
 
 # CHECKPOINT FILES
-erf.check_file      = chk        # root name of checkpoint file
-erf.check_int       = -1        # number of timesteps between checkpoints
+#erf.restart	    = erf_chk00010
+erf.check_file      = erf_chk        # root name of checkpoint file
+erf.check_int       = 100        # number of timesteps between checkpoints
 
 # PLOTFILES
 erf.plot_file_1     = erf_plt        # prefix of plotfile name
